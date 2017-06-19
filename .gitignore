@@ -2,3 +2,7 @@
 .Rhistory
 .RData
 .Ruserdata
+# Knitr stuff
+*.html
+*_cache/*
+*files/*
