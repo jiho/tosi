@@ -108,6 +108,9 @@ evaluated in in `r length(unique(t3$Category))` "ecosystems"
 ```{r}
 sort(unique(t3$Category))
 ```
+
+For simplicity and/or the requirements of the techniques, the *scores* for these local criteria are often *averaged* across ecosystems.
+
 ## Plot of relationships
 
 Fig x: Links between solutions (light gray) and scoring criteria, either global (black) or local (grey). The links are coloured according to the score, from red (bad) to good (green; grey is an undefined score). For each solution, links are ordered by increasing score.
@@ -174,7 +177,6 @@ alluvial(
 )
 ```
 
-For simplicity and/or the requierement of the techniques, the *scores* for these later criteria can be *averaged* across ecosystems.
 
 ## Clustering
 
