@@ -108,6 +108,70 @@ evaluated in in `r length(unique(t3$Category))` "ecosystems"
 ```{r}
 sort(unique(t3$Category))
 ```
+## Plot of relationships
+
+Fig x: Links between solutions (light gray) and scoring criteria, either global (black) or local (grey). The links are coloured according to the score, from red (bad) to good (green; grey is an undefined score). For each solution, links are ordered by increasing score.
+
+```{r circos, fig.height=9, fig.width=9}
+library("circlize")
+
+# prepare data for Chord diagram
+d <- dst %>%
+  mutate(
+    # add a column of ones for the line width
+    One=1,
+    # replace empty scores
+    Score0=replace(Score, is.na(Score), 0),
+    # compute colors manually
+    Color=ifelse(is.na(Score), "grey", brewer_map(Score0, name="RdYlGn")) # red=0, green=5
+  ) %>%
+  # sort by Score within each solution
+  arrange(Solutions, desc(Score)) %>%
+  # reorder columns for chordDiagram
+  select(Criteria, Solutions, One, 1:ncol(.)) %>% 
+  as.data.frame()
+
+# shorten label
+levels(d$Criteria) <- str_wrap(levels(d$Criteria), width=12)
+levels(d$Solutions) <- str_wrap(levels(d$Solutions), width=12)
+
+chordDiagram(d,
+  # map precomputed color to lines
+  col=d$Color,
+  order=c(levels(d$Criteria), levels(d$Solutions)),
+  # color grid according to type of data: global criterion, local criterion, solution
+  grid.col=rep(
+    c("grey0", "grey40", "grey80"),
+    times=c(nlevels(t1$Criteria), nlevels(t3$Criteria), nlevels(d$Solutions))
+  ),
+  # remove axis around plot
+  annotationTrack=c("name", "grid"),
+  # put green lines one top
+  link.largest.ontop=TRUE,
+  # plot aspect
+  h.ratio=0.6, transparency=0.1,
+  directional=1, direction.type="diffHeight"
+)
+```
+
+
+Fig x: Same legend as above. Boxes should be drawn around solutions and criteria to better define them
+
+```{r alluvial, fig.height=9}
+library("alluvial")
+# shorten label
+levels(d$Criteria) <- str_wrap(levels(d$Criteria), width=16)
+levels(d$Solutions) <- str_wrap(levels(d$Solutions), width=16)
+
+alluvial(
+  # draw lines, ordered by score in each solution
+  d[,2:1], freq=1,
+  ordering=list(with(d, order(Solutions, Score)), NULL),
+  # map color
+  col=d$Color,
+  # cleaner aspect
+  border=NA, alpha=0.9, xw=0.2, cw=0.12, blocks=F, gap.width=0.15, cex=0.8
+)
 ```
 
 For simplicity and/or the requierement of the techniques, the *scores* for these later criteria can be *averaged* across ecosystems.
