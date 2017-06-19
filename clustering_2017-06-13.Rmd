@@ -241,9 +241,10 @@ ggplot(dsg) + geom_violin(aes(x=Criteria, y=Score, fill=colour), scale="width", 
 
 This plot can be read as:
 
-- the green solutions are particularly effective (high scores) for Warming, Moderate warming and Acidification but are not very effective for Other drivers and have low scores for Global governability, Cost effectiveness and Co-benefits.
-- the red solutions are mostly ready, have few unintended effects, are easy to apply politically (high Global governability), and have high Co-benefits; however they are not very effective against Warming and Acidification
-- the blue solutions are mostly average everywhere, except they have somewhat better cost effectiveness and are not very effective for Moderate acidification.
+- the green solutions are particularly effective (high scores) against warming, both local and global. They also tend to be more effective against acidification. They are quite ineffective against other drivers and have low scores for global governability, cost effectiveness and co-benefits.
+- the red solutions are practical: high readiness, goog governability, few unintended effects, and high co-benefits; however they are not very effective against warming and acidification
+- the blue solutions are mostly average everywhere, except they have somewhat good cost effectiveness, low co-benefits, and are not very effective to moderate acidification globally.
+
 
 ## PCA then clustering
 
@@ -266,7 +267,7 @@ pca <- suppressWarnings(PCA(d, graph=F, scale=F))
 qplot(1:nrow(pca$eig), pca$eig$eigenvalue) + geom_hline(yintercept=mean(pca$eig$eigenvalue), colour="red")
 ```
 
-Hierarchical clustering (Euclidean distance, Ward aggregation method) is performed on the coordinates of the solutions on those first 4 PCs. As before, 3 groups seem to emerge and are mostly equivalent to those highlighted on the raw data (which is expected of course, since the PCA just summarises the data and removes noise).
+Hierarchical clustering (Euclidean distance, Ward aggregation method) is performed on the coordinates of the solutions on those first 4 PCs. As before, 3 groups seem to emerge and are mostly equivalent to those highlighted on the raw data (which is expected of course, since the PCA just summarises the data and removes noise...).
 
 ```{r clust_on_PCA}
 # perform synthetic clustering
@@ -288,10 +289,10 @@ par(pars)
 
 The real interest here is that the clusters can re-projected in the PCA space where the solutions can be individually related to the criteria in which they score well. The two following plots represent:
 
-1. the solutions distributed in space according to their scoring patterns and clustered into groups of solutions with similar scoring patterns
-2. the criteria that determine the distribution of solutions in the PCA space; if a solution is in the direction in which a criterion points, it has a high score according to this criterion (and if it is in the opposite direction, it has a low score); the angle between the lines of the criteria reflect their correlation: two lines close to each other means that most solutions have similar scores for these two criteria, two lines at 90º angle means that solutions have scores that are completely uncorrelated for these two criteria.
+1. the correlation of criteria based on their scoring, which define the PCA space. The angle between the lines of the criteria reflect their correlation: two lines close to each other means that most solutions have similar scores for these two criteria, two lines at 90º angle means that solutions have scores that are completely uncorrelated for these two criteria.
+2. the solutions distributed in the PCA space space according to their scoring patterns and clustered into groups of solutions with similar scoring patterns. If a solution is in the general direction in which a criterion points, it has a high score according to this criterion (and if it is in the opposite direction, it has a low score).
 
-In both cases, the solutions or criteria which are not well represented in this PCA space (i.e. which have quite nondescript scoring patterns) are made semi-transparent.
+In both cases, the criteria or solutions which are not well represented in this PCA space (i.e. which have quite nondescript scoring patterns) are made semi-transparent.
 
 ```{r PCA_and_clust, fig.height=5, fig.width=6}
 # plot result of PCA and clustering together
@@ -356,15 +357,17 @@ ggplot(pca_v12, aes(x=Dim.1, y=Dim.2, alpha=cos2)) +
 
 These plots are read as follows:
 
-- Warming+Moderate warming are opposed to Global governability, Other drivers, Cobenefits etc. on the second plot. This means that most solutions cannot score high on criteria in both of these groups. If a solution is effective for warming, it will have poor governability and poor effectiveness on Other drivers.
-- Cost effectiveness, Lead time, Sea level rise are all badly projected, meaning that solutions are not very differentiated according to these criteria.
-- The solutions effective against acidification have very different levels of Readiness, Cobenefits, etc. (90º angle)
+- Solutions effective against warming and acidification are effective at global and local scales (arrows are almost overlapping)
+- Solutions with a high degree of readiness are those judged to have to most co-benefits, few unintended impacts and good governability.
+- Cost effectiveness, lead time until effectiveness, and effectiveness against sea level rise are all badly projected, meaning that solutions are not very differentiated according to these criteria.
+- Mitigation of warming, both global and local, is opposed to governability, mitigating other drivers, co-benefits etc. = most solutions cannot score high on criteria in both of these groups. If a solution is effective for warming, it has poor governability and poor effectiveness on other drivers.
+- The solutions effective against acidification have very different levels of readiness, co-benefits, etc. (~90º angle)
 
-also
+and
 
--  The solutions in the green group are effective for Warming, Moderate warming, Acidification, and Moderate acidification (arrows in the second plot point in their direction in the first plot). Hybrids and Albedo are particularly effective for warming-related stuff. Alkalinity_g and Renewables are particularly effective for acidification-related stuff. As already explained, in turn, they have poor scores in Global governability, Other drivers, etc. which point in the opposite direction.
-- The solutions in the red group are basically the contrary of those in the green group regarding warming and governability, other drivers, cobenefits, readiness. The solutions Vegetation_l, Pollution, Protection have a high degree of readiness, last long, and have good co-benefits.
-- The blue group is not very specific. The only pattern is that Cloud is not effective for mitigating Acidification and basically scores bad everywhere.
+-  The solutions in the green group are effective against warming and acidification (arrows in the second plot point in their direction in the first plot). Hybrids and Albedo are particularly effective for warming-related stuff. Alkalinity global and Renewables are particularly effective for acidification-related stuff. As already explained, in turn, they have poor scores in Global governability, reducing the impact of other drivers, etc. which point in the opposite direction.
+- The solutions in the red group are basically the contrary of those in the green group regarding warming and governability, other drivers, co-benefits, readiness. The solutions Vegetation loc., Pollution, Protection have a high degree of readiness, last long, and have good co-benefits.
+- The blue group is not very specific. The only pattern is that Cloud is not effective for mitigating acidification and basically scores bad everywhere.
 
 
 To examine the solutions and criteria not well represented in dimension 1 and 2, we can examine dimensions 2 and 3:
@@ -398,7 +401,7 @@ ggplot(pca_v23, aes(x=Dim.2, y=Dim.3, alpha=cos2)) +
 
 This does not add much information (as expected since PCs 1 and 2 already capture 62% of the variance). We could still remark that:
 
-- Alkalinity_l is somewhat effective against Acidification and not very effective against Sea level rise (which seems like it can be expected even by my non-specialist-self ;-) )
+- Alkalinity loc is somewhat effective against acidification and not very effective against sea level rise (which seems like it can be expected even by my non-specialist-self ;-) )
 - Evolution and Productivity are confirmed to have mostly bad scores in everything.
 
 Hope that helps!
