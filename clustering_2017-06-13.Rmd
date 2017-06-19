@@ -260,6 +260,9 @@ d <- dsw
 row.names(d) <- d$Solutions
 d <- select(d, -Solutions)
 
+# cleanup labels
+names(d) <- str_wrap(names(d), 18)
+
 # perform PCA without scaling (since most variables are in the same range)
 pca <- suppressWarnings(PCA(d, graph=F, scale=F))
 
@@ -332,28 +335,29 @@ pca_v12 <- augment(pca, which="var")
 
 pvar <- round(pca$eig$`percentage of variance`[1:2], 1)
 coord_pca <- list(
-    coord_fixed(),
-    scale_x_continuous(breaks=0), scale_y_continuous(breaks=0),
-    labs(x=paste0("PC1 ", pvar[1], "%"), y=paste0("PC2 ", pvar[2], "%"))
+  coord_fixed(),
+  labs(x=paste0("PC1 (", pvar[1], "%)"), y=paste0("PC2 (", pvar[2], "%)"))
 )
 
-ggplot(pca_i12, aes(Dim.1, Dim.2, alpha=cos2, colour=colour)) +
-  geom_point() + geom_text_repel(aes(label=label)) +
-  scale_colour_identity() + scale_alpha(limits=c(0,NA)) +
+pv12 <- ggplot(pca_v12, aes(alpha=cos2)) +
+  geom_segment(aes(x=0, y=0, xend=Dim.1, yend=Dim.2), arrow=arrow(angle=15, length=unit(0.02, "npc"))) +
+  # geom_text(aes(x=Dim.1, y=Dim.2, label=label), hjust=0.5, vjust=0.5, size=3) +
+  geom_text_repel(aes(x=Dim.1, y=Dim.2, label=label), segment.alpha=0.2, min.segment.length=unit(0.02, "npc"), size=3) +
+  scale_alpha(limits=c(0,0.9)) +
+  scale_x_continuous(breaks=0, expand=c(0.05, 0.2)) +
+  scale_y_continuous(breaks=0, expand=c(0.05, 0.2)) +
   coord_pca
 
-ggplot(pca_v12, aes(x=Dim.1, y=Dim.2, alpha=cos2)) +
-  geom_segment(aes(xend=0, yend=0)) +
-  geom_text_repel(aes(label=label), segment.size=0) +
+pi12 <- ggplot(pca_i12, aes(Dim.1, Dim.2, alpha=cos2, colour=colour)) +
+  geom_point(shape=16) + geom_text_repel(aes(label=label), size=3) +
+  scale_colour_identity() + scale_alpha(limits=c(0,0.9)) +
+  scale_x_continuous(breaks=0) + scale_y_continuous(breaks=0) +
   coord_pca
 
-# 
-# # extract objects on PC 2 and 3 to check whether we missed something on 1:2
-# pca_i23 <- augment(pca, dimensions=c(2,3))
-# pca_i23$cluster <- factor(cluster)
-# ggplot(pca_i23, aes(Dim.2, Dim.3, alpha=cos2, colour=cluster)) + geom_point() + geom_text_repel(aes(label=label)) + coord_pca
+pv12
+
+pi12
 ```
-
 
 These plots are read as follows:
 
@@ -369,6 +373,19 @@ and
 - The solutions in the red group are basically the contrary of those in the green group regarding warming and governability, other drivers, co-benefits, readiness. The solutions Vegetation loc., Pollution, Protection have a high degree of readiness, last long, and have good co-benefits.
 - The blue group is not very specific. The only pattern is that Cloud is not effective for mitigating acidification and basically scores bad everywhere.
 
+```{r biplot, fig.height=7, fig.width=7}
+# # biplot through vegan
+# suppressPackageStartupMessages(library("vegan"))
+# dd <- data.frame(lapply(d, function(x) {
+#   x[is.na(x)] <- mean(x, na.rm=T)
+#   return(x)
+# }))
+# row.names(dd) <- row.names(d)
+# 
+# pca_v <- rda(dd, scale=F)
+# biplot(pca_v, scaling="sites")
+```
+
 
 To examine the solutions and criteria not well represented in dimension 1 and 2, we can examine dimensions 2 and 3:
 
@@ -382,20 +399,23 @@ pca_v23 <- augment(pca, which="var", dimensions=c(2,3))
 
 pvar <- round(pca$eig$`percentage of variance`[2:3], 1)
 coord_pca <- list(
-    coord_fixed(),
-    scale_x_continuous(breaks=0), scale_y_continuous(breaks=0),
-    labs(x=paste0("PC1 ", pvar[1], "%"), y=paste0("PC2 ", pvar[2], "%"))
+  coord_fixed(),
+  labs(x=paste0("PC2 (", pvar[1], "%)"), y=paste0("PC3 (", pvar[2], "%)"))
 )
 
-
-ggplot(pca_i23, aes(Dim.2, Dim.3, alpha=cos2, colour=colour)) +
-  geom_point() + geom_text_repel(aes(label=label)) +
-  scale_colour_identity() + scale_alpha(limits=c(0,NA)) +
+ggplot(pca_v23, aes(alpha=cos2)) +
+  geom_segment(aes(x=0, y=0, xend=Dim.2, yend=Dim.3), arrow=arrow(angle=15, length=unit(0.02, "npc"))) +
+  # geom_text(aes(x=Dim.1, y=Dim.2, label=label), hjust=0.5, vjust=0.5, size=3) +
+  geom_text_repel(aes(x=Dim.2, y=Dim.3, label=label), segment.alpha=0.2, min.segment.length=unit(0.02, "npc"), size=3) +
+  scale_alpha(limits=c(0,0.9)) +
+  scale_x_continuous(breaks=0, expand=c(0.05, 0.2)) +
+  scale_y_continuous(breaks=0, expand=c(0.05, 0.2)) +
   coord_pca
 
-ggplot(pca_v23, aes(x=Dim.2, y=Dim.3, alpha=cos2)) +
-  geom_segment(aes(xend=0, yend=0)) +
-  geom_text_repel(aes(label=label), segment.size=0) +
+ggplot(pca_i23, aes(Dim.2, Dim.3, alpha=cos2, colour=colour)) +
+  geom_point() + geom_text_repel(aes(label=label), size=3) +
+  scale_colour_identity() + scale_alpha(limits=c(0,0.9)) +
+  scale_x_continuous(breaks=0) + scale_y_continuous(breaks=0) +
   coord_pca
 ```
 
