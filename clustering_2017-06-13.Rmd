@@ -89,24 +89,25 @@ dsw <- dst %>% spread(key="Criteria", value="Score") %>% as.data.frame()
 The data consists of `r ncol(t1)-1` climate-change mitigation solutions
 
 ```{r}
-names(t1)[-1]
+levels(dst$Solutions)
 ```
 
-Each is scored from 1 (sometimes 0) to 5 according to `r nrow(t1)` general criteria:
+Each is scored from 1 (sometimes 0) to 5 according to `r nlevels(t1$Criteria)` global criteria
 
 ```{r}
-unique(t1$Criteria)
+levels(t1$Criteria)
 ```
 
-As well as `r length(unique(t3$Criteria))` criteria
+As well as `r nlevels(t3$Criteria)` local criteria
 
 ```{r}
-unique(t3$Criteria)
+levels(t3$Criteria)
 ```
-evaluated in in `r length(unique(t3$Category))` ecosystems 
+evaluated in in `r length(unique(t3$Category))` "ecosystems"
 
 ```{r}
-unique(t3$Category)
+sort(unique(t3$Category))
+```
 ```
 
 For simplicity and/or the requierement of the techniques, the *scores* for these later criteria can be *averaged* across ecosystems.
