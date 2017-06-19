@@ -18,6 +18,7 @@ knitr::opts_chunk$set(
   cache=T
 )
 library("tidyverse")
+library("stringr")
 library("FactoMineR")
 library("broom")
 library("ggplot2")
@@ -32,23 +33,41 @@ library("chroma")
 
 ```{r read_data}
 t1a <- read_csv(file="table_1a.csv", col_types=cols()) %>% 
-        rename(Alkalinity_g=Alkalinity, Vegetation_g=Vegetation)
+        rename(`Alkalinity glob.`=Alkalinity, `Vegetation glob.`=Vegetation)
 
 t1b <- read_csv(file="table_1b.csv", col_types=cols()) %>% 
-        rename(Alkalinity_l=Alkalinity, Vegetation_l=Vegetation)
+        rename(`Alkalinity loc.`=Alkalinity, `Vegetation loc.`=Vegetation, `Relocation, Restoration`=Relocation_Restoration)
+# score relative and absolute sea level rise together
+t1b$Criteria <- str_replace(t1b$Criteria, "Moderate relative sea", "Moderate sea")
 
 t1 <- full_join(t1a, t1b, by="Criteria")
 
-t3 <- read_csv(file="table_3.csv", col_types=cols())
+# abbreviate some words for clarity of plots
+t1$Criteria <- str_replace(t1$Criteria, "until full potential effectiveness", "until full pot. effectiv.")
+
+t3 <- read_csv(file="table_3.csv", col_types=cols()) 
+# make names clearer
+t3 <- t3 %>% rename(`Relocation, Restoration`=Relocation_Restoration)
+names(t3) <- str_replace(names(t3), "_g", " glob.")
+names(t3) <- str_replace(names(t3), "_l", " loc.")
+# make labels clearer
+t3$Criteria <- str_replace(t3$Criteria, "_", " ")
+t3$Criteria <- str_replace(t3$Criteria, "Warming", "Reduce impact of warming")
+t3$Criteria <- str_replace(t3$Criteria, "Acidification", "Reduce impact of acidification")
+t3$Criteria <- str_replace(t3$Criteria, "Sea level rise", "Reduce impact of sea level rise")
+t3$Criteria <- str_replace(t3$Criteria, "Other drivers", "Reduce impact of other drivers")
+
 # keep everything
 t3a <- t3 %>%
-        mutate(Criteria=paste(Category, Criteria, sep="_")) %>%
+        mutate(Criteria=str_c(Category, Criteria, sep="_")) %>%
         select(-Category)
-# summarise accross habitats
-t3s <- t3 %>% select(-Category) %>% group_by(Criteria) %>% summarise_all(mean, na.rm=T)
+# summarise per criterion, accross ecosystems
+t3c <- t3 %>% select(-Category) %>% group_by(Criteria) %>% summarise_all(mean, na.rm=T)
+# summarise per ecosystem, across criteria
+t3e <- t3 %>% select(-Criteria) %>% group_by(Category) %>% summarise_all(mean, na.rm=T)
 
 da <- bind_rows(t1, t3a) %>% gather(key="Solution", value="Score", -Criteria) %>% spread(key="Criteria", value="Score") %>% as.data.frame()
-ds <- bind_rows(t1, t3s) %>% gather(key="Solution", value="Score", -Criteria) %>% spread(key="Criteria", value="Score") %>% as.data.frame()
+ds <- bind_rows(t1, t3c) %>% gather(key="Solution", value="Score", -Criteria) %>% spread(key="Criteria", value="Score") %>% as.data.frame()
 ```
 
 The data consists of `r ncol(t1)-1` climate-change mitigation solutions
