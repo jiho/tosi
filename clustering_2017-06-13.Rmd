@@ -182,9 +182,9 @@ Clustering the full, non-aggregated data set, with hierarchical clustering (Eucl
 
 ```{r hclust}
 # reformat data for clustering
-d <- da
-row.names(d) <- d$Solution
-d <- select(d, -Solution)
+d <- dw
+row.names(d) <- d$Solutions
+d <- select(d, -Solutions)
 hc <- as.dendrogram(hclust(dist(d), method="ward.D2"))
 
 # cut tree
@@ -204,9 +204,9 @@ The same technique for the dataset in which the scores are averaged by ecosystem
 
 ```{r hclust_s}
 # reformat data for clustering
-d <- ds
-row.names(d) <- d$Solution
-d <- select(d, -Solution)
+d <- dsw
+row.names(d) <- d$Solutions
+d <- select(d, -Solutions)
 hc <- as.dendrogram(hclust(dist(d), method="ward.D2"))
 
 # cut tree
@@ -227,13 +227,14 @@ The distribution of scores for each criterion in the clusters (computed from the
 ```{r scores, fig.height=10}
 # associate groups with the correct solution, preserving the colors compared to the previous plots
 groups <- data.frame(
-  Solution=labels(hc),
+  Solutions=factor(labels(hc)),
   colour=unlist(dendrapply(hc, function(x) {attributes(x)$nodePar$lab.col}))
 )
-dsg <- left_join(ds, groups, by="Solution")
-dst <- gather(dsg, key="Criterion", value="Score", -Solution, -colour)
+dsg <- left_join(dst, groups, by="Solutions")
 
-ggplot(dst) + geom_violin(aes(x=Criterion, y=Score, fill=colour), scale="width", colour=alpha("black", 0.5), na.rm=T) + scale_fill_identity() + coord_flip()
+# plot
+levels(dsg$Criteria) <- str_wrap(levels(dsg$Criteria), 15)
+ggplot(dsg) + geom_violin(aes(x=Criteria, y=Score, fill=colour), scale="width", colour=alpha("black", 0.5), na.rm=T) + scale_fill_identity() + coord_flip() + geom_vline(aes(xintercept=8.5))
 ```
 
 This plot can be read as:
@@ -252,9 +253,9 @@ The eigenvalues or the PCA highlights that the first 4 PCs hold significant info
 
 ```{r PCA}
 # reformat data for PCA
-d <- ds
-row.names(d) <- d$Solution
-d <- select(d, -Solution)
+d <- dsw
+row.names(d) <- d$Solutions
+d <- select(d, -Solutions)
 
 # perform PCA without scaling (since most variables are in the same range)
 pca <- suppressWarnings(PCA(d, graph=F, scale=F))
