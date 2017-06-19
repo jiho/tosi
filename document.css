@@ -124,6 +124,7 @@ body {
   margin-right: auto;
   margin-left: auto;
   max-width: 545px;
+  max-width: 650px;
 	/* still visible on half macbook screen
 	   matches 80 columns fixed width output with the fonts chosen here */
 }
