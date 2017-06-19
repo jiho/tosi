@@ -32,6 +32,7 @@ library("chroma")
 ## Data 
 
 ```{r read_data}
+## Global effects
 t1a <- read_csv(file="table_1a.csv", col_types=cols()) %>% 
         rename(`Alkalinity glob.`=Alkalinity, `Vegetation glob.`=Vegetation)
 
@@ -42,20 +43,28 @@ t1b$Criteria <- str_replace(t1b$Criteria, "Moderate relative sea", "Moderate sea
 
 t1 <- full_join(t1a, t1b, by="Criteria")
 
-# abbreviate some words for clarity of plots
-t1$Criteria <- str_replace(t1$Criteria, "until full potential effectiveness", "until full pot. effectiv.")
+t1$Criteria <- t1$Criteria %>% 
+  # abbreviate some words for clarity of plots
+  str_replace("until full potential effectiveness", "until full pot. effectiv.") %>% 
+  # force order
+  factor(levels=unique(.))
 
+
+## Local effects
 t3 <- read_csv(file="table_3.csv", col_types=cols()) 
 # make names clearer
 t3 <- t3 %>% rename(`Relocation, Restoration`=Relocation_Restoration)
 names(t3) <- str_replace(names(t3), "_g", " glob.")
 names(t3) <- str_replace(names(t3), "_l", " loc.")
-# make labels clearer
-t3$Criteria <- str_replace(t3$Criteria, "_", " ")
-t3$Criteria <- str_replace(t3$Criteria, "Warming", "Reduce impact of warming")
-t3$Criteria <- str_replace(t3$Criteria, "Acidification", "Reduce impact of acidification")
-t3$Criteria <- str_replace(t3$Criteria, "Sea level rise", "Reduce impact of sea level rise")
-t3$Criteria <- str_replace(t3$Criteria, "Other drivers", "Reduce impact of other drivers")
+t3$Criteria <- t3$Criteria %>% 
+  # make labels clearer
+  str_replace("_", " ") %>% 
+  str_replace("Warming", "Reduce impact of warming") %>% 
+  str_replace("Acidification", "Reduce impact of acidification") %>% 
+  str_replace("Sea level rise", "Reduce impact of sea level rise") %>% 
+  str_replace("Other drivers", "Reduce impact of other drivers") %>% 
+  # force order
+  factor(levels=unique(.))
 
 # keep everything
 t3a <- t3 %>%
@@ -66,8 +75,15 @@ t3c <- t3 %>% select(-Category) %>% group_by(Criteria) %>% summarise_all(mean, n
 # summarise per ecosystem, across criteria
 t3e <- t3 %>% select(-Criteria) %>% group_by(Category) %>% summarise_all(mean, na.rm=T)
 
-da <- bind_rows(t1, t3a) %>% gather(key="Solution", value="Score", -Criteria) %>% spread(key="Criteria", value="Score") %>% as.data.frame()
-ds <- bind_rows(t1, t3c) %>% gather(key="Solution", value="Score", -Criteria) %>% spread(key="Criteria", value="Score") %>% as.data.frame()
+
+dt <- suppressWarnings(bind_rows(t1, t3a)) %>% gather(key="Solutions", value="Score", -Criteria)
+dw <- dt %>% spread(key="Criteria", value="Score") %>% as.data.frame()
+
+dst <- suppressWarnings(bind_rows(t1, t3c)) %>% gather(key="Solutions", value="Score", -Criteria)
+# force order of factors
+dst$Solutions <- factor(dst$Solutions)                            # alphabetical
+dst$Criteria <- factor(dst$Criteria, levels=unique(dst$Criteria)) # current order
+dsw <- dst %>% spread(key="Criteria", value="Score") %>% as.data.frame()
 ```
 
 The data consists of `r ncol(t1)-1` climate-change mitigation solutions
