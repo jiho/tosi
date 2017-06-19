@@ -1,0 +1,301 @@
+---
+author: J-O Irisson
+output: 
+  html_document: 
+    css: document.css
+---
+
+# Clustering of CC mitigation solutions
+
+*J-G Gattuso, J-O Irisson  
+`r Sys.Date()`*
+
+
+```{r prep, echo=FALSE, message= FALSE}
+knitr::opts_chunk$set(
+  echo=F,
+  comment="",
+  cache=T
+)
+library("tidyverse")
+library("FactoMineR")
+library("broom")
+library("ggplot2")
+library("ggrepel")
+library("dendextend")
+# devtools::install_github("jiho/chroma")
+library("chroma")
+```
+
+
+## Data 
+
+```{r read_data}
+t1a <- read_csv(file="table_1a.csv", col_types=cols()) %>% 
+        rename(Alkalinity_g=Alkalinity, Vegetation_g=Vegetation)
+
+t1b <- read_csv(file="table_1b.csv", col_types=cols()) %>% 
+        rename(Alkalinity_l=Alkalinity, Vegetation_l=Vegetation)
+
+t1 <- full_join(t1a, t1b, by="Criteria")
+
+t3 <- read_csv(file="table_3.csv", col_types=cols())
+# keep everything
+t3a <- t3 %>%
+        mutate(Criteria=paste(Category, Criteria, sep="_")) %>%
+        select(-Category)
+# summarise accross habitats
+t3s <- t3 %>% select(-Category) %>% group_by(Criteria) %>% summarise_all(mean, na.rm=T)
+
+da <- bind_rows(t1, t3a) %>% gather(key="Solution", value="Score", -Criteria) %>% spread(key="Criteria", value="Score") %>% as.data.frame()
+ds <- bind_rows(t1, t3s) %>% gather(key="Solution", value="Score", -Criteria) %>% spread(key="Criteria", value="Score") %>% as.data.frame()
+```
+
+The data consists of `r ncol(t1)-1` climate-change mitigation solutions
+
+```{r}
+names(t1)[-1]
+```
+
+Each is scored from 1 (sometimes 0) to 5 according to `r nrow(t1)` general criteria:
+
+```{r}
+unique(t1$Criteria)
+```
+
+As well as `r length(unique(t3$Criteria))` criteria
+
+```{r}
+unique(t3$Criteria)
+```
+evaluated in in `r length(unique(t3$Category))` ecosystems 
+
+```{r}
+unique(t3$Category)
+```
+
+For simplicity and/or the requierement of the techniques, the *scores* for these later criteria can be *averaged* across ecosystems.
+
+## Clustering
+
+Clustering the full, non-aggregated data set, with hierarchical clustering (Euclidian distance, Ward aggregation method to highlight synthetic groups) suggests three groups:
+
+```{r hclust}
+# reformat data for clustering
+d <- da
+row.names(d) <- d$Solution
+d <- select(d, -Solution)
+hc <- as.dendrogram(hclust(dist(d), method="ward.D2"))
+
+# cut tree
+n <- 3 # based on the genral aspect of the plot
+
+# nice plot
+pars <- par(no.readonly=T)
+par(mai=c(2,0.5,0.1,0.1))
+cols <- hue.colors(n)
+hc <- color_labels(hc, k=n, col=cols)
+hc <- color_branches(hc, k=n, col=cols)
+plot(hc)
+par(pars)
+```
+
+The same technique for the dataset in which the scores are averaged by ecosystem gives mostly the same grouping
+
+```{r hclust_s}
+# reformat data for clustering
+d <- ds
+row.names(d) <- d$Solution
+d <- select(d, -Solution)
+hc <- as.dendrogram(hclust(dist(d), method="ward.D2"))
+
+# cut tree
+n <- 3 # based on the genral aspect of the plot
+
+# nice plot
+pars <- par(no.readonly=T)
+par(mai=c(2,0.5,0.1,0.1))
+cols <- hue.colors(n)
+hc <- color_labels(hc, k=n, col=cols)
+hc <- color_branches(hc, k=n, col=cols)
+plot(hc)
+par(pars)
+```
+
+The distribution of scores for each criterion in the clusters (computed from the averaged dataset) are
+
+```{r scores, fig.height=10}
+# associate groups with the correct solution, preserving the colors compared to the previous plots
+groups <- data.frame(
+  Solution=labels(hc),
+  colour=unlist(dendrapply(hc, function(x) {attributes(x)$nodePar$lab.col}))
+)
+dsg <- left_join(ds, groups, by="Solution")
+dst <- gather(dsg, key="Criterion", value="Score", -Solution, -colour)
+
+ggplot(dst) + geom_violin(aes(x=Criterion, y=Score, fill=colour), scale="width", colour=alpha("black", 0.5), na.rm=T) + scale_fill_identity() + coord_flip()
+```
+
+This plot can be read as:
+
+- the green solutions are particularly effective (high scores) for Warming, Moderate warming and Acidification but are not very effective for Other drivers and have low scores for Global governability, Cost effectiveness and Cobenefits.
+- the red solutions are mostly ready, have few unintended effects, are easy to apply politically (high Global governability), and have high Cobenefits; however they are not very effective against Warming and Acidification
+- the blue solutions are mostly average everywhere, except they have somewhat better cost effectiveness and are not very effective for Moderate acidification.
+
+## PCA then clustering
+
+A principal component analysis (PCA) can be used to examine the most important correlations and remove noise before the clustering step.
+
+The PCA is performed without scaling the data, assuming that all criteria have equal importance and that those for which the solutions are all scored similarly are not discriminative and should not matter much. For simplicity, we use the scores averaged by ecosystem.
+
+The eigenvalues or the PCA highlights that the first 4 PCs hold significant information
+
+```{r PCA}
+# reformat data for PCA
+d <- ds
+row.names(d) <- d$Solution
+d <- select(d, -Solution)
+
+# perform PCA without scaling (since most variables are in the same range)
+pca <- suppressWarnings(PCA(d, graph=F, scale=F))
+
+# inspect eigenvalue
+qplot(1:nrow(pca$eig), pca$eig$eigenvalue) + geom_hline(yintercept=mean(pca$eig$eigenvalue), colour="red")
+```
+
+Hierarchical clustering (Euclidian distance, Ward aggregation method) is performed on the coordinates of the solutions on those first 4 PCs. As before, 3 groups seem to emerge and are mostly equivalent to those highlighted on the raw data (which is expected of course, since the PCA just summarises the data and removes noise).
+
+```{r clust_on_PCA}
+# perform synthetic clustering
+coords <- pca$ind$coord[,1:4]
+hc_pca <- as.dendrogram(hclust(dist(coords), method="ward.D2"))
+
+# cut tree
+n <- 3 # based on the genral aspect of the plot
+
+# nice plot
+pars <- par(no.readonly=T)
+par(mai=c(2,0.5,0.1,0.1))
+cols <- hue.colors(n)
+hc_pca <- color_labels(hc_pca, k=n, col=cols)
+hc_pca <- color_branches(hc_pca, k=n, col=cols)
+plot(hc_pca)
+par(pars)
+```
+
+The real interest here is that the clusters can reprojected in the PCA space where the solutions can be invidually related to the criteria in which they score well. The two following plots represent:
+
+1. the solutions distributed in space according to their scoring patterns and clustered into groups of solutions with similar scoring patterns
+2. the criteria that determine the distribution of solutions in the PCA space; if a solution is in the direction in which a criterion points, it has a high score according to this criterion (and if it is in the opposite direction, it has a low score); the angle between the lines of the criteria reflect their correlation: two lines close to each other means that most solutions have similar scores for these two criteria, two lines at 90º angle means that solutions have scores that are completely uncorrelated for these two criteria.
+
+In both cases, the solutions or criteria which are not well represented in this PCA space (i.e. which have quite non-decript scoring patterns) are made semi-transparent.
+
+```{r PCA_and_clust, fig.height=5, fig.width=6}
+# plot result of PCA and clustering together
+
+#' Extract data from a PCA object
+#'
+#' @param x output of FactoMineR::PCA
+#' @param data original data; optional
+#' @param dimensions PCs to extract
+#' @param which objects/rows/individuals or descriptors/columns/variables
+augment.PCA <- function(x, data=NULL, dimensions=c(1,2), which=c("ind", "var")) {
+  which <- match.arg(which)
+  d <- data.frame(
+    x[[which]]$coord[,dimensions],
+    cos2=rowSums(x[[which]]$cos2[,dimensions]),
+    contrib=rowSums(x[[which]]$contrib[,dimensions])
+  )
+  d$label <- row.names(d)
+  if (which == "ind" & !is.null(data)) {
+    d <- cbind(d, data)
+  }
+  return(d)
+}
+
+# define groups of solutions from clustering, preserving the colors compared to the dendrogram plot
+groups <- data.frame(
+  label=labels(hc_pca),
+  colour=unlist(dendrapply(hc_pca, function(x) {attributes(x)$nodePar$lab.col}))
+)
+
+# extract objects from PCA
+pca_i12 <- augment(pca)
+# add clusters
+pca_i12 <- left_join(pca_i12, groups, by = "label")
+# extract variables from PCA
+pca_v12 <- augment(pca, which="var")
+
+pvar <- round(pca$eig$`percentage of variance`[1:2], 1)
+coord_pca <- list(
+    coord_fixed(),
+    scale_x_continuous(breaks=0), scale_y_continuous(breaks=0),
+    labs(x=paste0("PC1 ", pvar[1], "%"), y=paste0("PC2 ", pvar[2], "%"))
+)
+
+ggplot(pca_i12, aes(Dim.1, Dim.2, alpha=cos2, colour=colour)) +
+  geom_point() + geom_text_repel(aes(label=label)) +
+  scale_colour_identity() + scale_alpha(limits=c(0,NA)) +
+  coord_pca
+
+ggplot(pca_v12, aes(x=Dim.1, y=Dim.2, alpha=cos2)) +
+  geom_segment(aes(xend=0, yend=0)) +
+  geom_text_repel(aes(label=label), segment.size=0) +
+  coord_pca
+
+# 
+# # extract objects on PC 2 and 3 to check whether we missed something on 1:2
+# pca_i23 <- augment(pca, dimensions=c(2,3))
+# pca_i23$cluster <- factor(cluster)
+# ggplot(pca_i23, aes(Dim.2, Dim.3, alpha=cos2, colour=cluster)) + geom_point() + geom_text_repel(aes(label=label)) + coord_pca
+```
+
+
+These plots are read as follows:
+
+- Warming+Moderate warming are opposed to Global governability, Other drivers, Cobenefits etc. on the second plot. This means that most solutions cannot score high on criteria in both of these groups. If a solution is effective for warming, it will have poor governability and poor effectiveness on Other drivers.
+- Cost effectiveness, Lead time, Sea level rise are all badly projected, meaning that solutions are not very differentiated according to these criteria.
+- The solutions effective against acidification have very different levels of Readiness, Cobenefits, etc. (90º angle)
+
+also
+
+-  The solutions in the green group are effective for Warming, Moderate warming, Acidification, and Moderate acidification (arrows in the second plot point in their direction in the first plot). Hybrids and Albedo are particularly effective for warming-related stuff. Alkalinity_g and Renewables are particularly effective for acidification-related stuff. As already explained, in turn, they have poor scores in Global governability, Other drivers, etc. which point in the opposite direction.
+- The solutions in the red group are basically the contrary of those in the green group regarding warming and governability, other drivers, cobenefits, readiness. The solutions Vegetation_l, Pollution, Protection have a high degree of readiness, last long, and have good co-benefits.
+- The blue group is not very specific. The only pattern is that Cloud is not effective for mitigating Acidification and basically scores bad everywhere.
+
+
+To examine the solutions and criteria not well represented in dimension 1 and 2, we can examine dimensions 2 and 3:
+
+```{r PCA_and_clust23, fig.height=5, fig.width=6}
+# extract objects from PCA
+pca_i23 <- augment(pca, dimensions=c(2,3))
+# add clusters
+pca_i23 <- left_join(pca_i23, groups, by = "label")
+# extract variables from PCA
+pca_v23 <- augment(pca, which="var", dimensions=c(2,3))
+
+pvar <- round(pca$eig$`percentage of variance`[2:3], 1)
+coord_pca <- list(
+    coord_fixed(),
+    scale_x_continuous(breaks=0), scale_y_continuous(breaks=0),
+    labs(x=paste0("PC1 ", pvar[1], "%"), y=paste0("PC2 ", pvar[2], "%"))
+)
+
+
+ggplot(pca_i23, aes(Dim.2, Dim.3, alpha=cos2, colour=colour)) +
+  geom_point() + geom_text_repel(aes(label=label)) +
+  scale_colour_identity() + scale_alpha(limits=c(0,NA)) +
+  coord_pca
+
+ggplot(pca_v23, aes(x=Dim.2, y=Dim.3, alpha=cos2)) +
+  geom_segment(aes(xend=0, yend=0)) +
+  geom_text_repel(aes(label=label), segment.size=0) +
+  coord_pca
+```
+
+This does not add much information (as expected since PCs 1 and 2 already capture 62% of the variance). We could still remark that:
+
+- Alkalinity_l is somewhat effective against Acidification and not very effective against Sea level rise (which seems like it can be expected even by my non-specialist-self ;-) )
+- Evolution and Productivity are confirmed to have mostly bad scores in everything.
+
+Hope that helps!
