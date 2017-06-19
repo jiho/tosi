@@ -78,7 +78,7 @@ For simplicity and/or the requierement of the techniques, the *scores* for these
 
 ## Clustering
 
-Clustering the full, non-aggregated data set, with hierarchical clustering (Euclidian distance, Ward aggregation method to highlight synthetic groups) suggests three groups:
+Clustering the full, non-aggregated data set, with hierarchical clustering (Euclidean distance, Ward aggregation method to highlight synthetic groups) suggests three groups:
 
 ```{r hclust}
 # reformat data for clustering
@@ -110,7 +110,7 @@ d <- select(d, -Solution)
 hc <- as.dendrogram(hclust(dist(d), method="ward.D2"))
 
 # cut tree
-n <- 3 # based on the genral aspect of the plot
+n <- 3 # based on the general aspect of the plot
 
 # nice plot
 pars <- par(no.readonly=T)
@@ -138,8 +138,8 @@ ggplot(dst) + geom_violin(aes(x=Criterion, y=Score, fill=colour), scale="width",
 
 This plot can be read as:
 
-- the green solutions are particularly effective (high scores) for Warming, Moderate warming and Acidification but are not very effective for Other drivers and have low scores for Global governability, Cost effectiveness and Cobenefits.
-- the red solutions are mostly ready, have few unintended effects, are easy to apply politically (high Global governability), and have high Cobenefits; however they are not very effective against Warming and Acidification
+- the green solutions are particularly effective (high scores) for Warming, Moderate warming and Acidification but are not very effective for Other drivers and have low scores for Global governability, Cost effectiveness and Co-benefits.
+- the red solutions are mostly ready, have few unintended effects, are easy to apply politically (high Global governability), and have high Co-benefits; however they are not very effective against Warming and Acidification
 - the blue solutions are mostly average everywhere, except they have somewhat better cost effectiveness and are not very effective for Moderate acidification.
 
 ## PCA then clustering
@@ -163,7 +163,7 @@ pca <- suppressWarnings(PCA(d, graph=F, scale=F))
 qplot(1:nrow(pca$eig), pca$eig$eigenvalue) + geom_hline(yintercept=mean(pca$eig$eigenvalue), colour="red")
 ```
 
-Hierarchical clustering (Euclidian distance, Ward aggregation method) is performed on the coordinates of the solutions on those first 4 PCs. As before, 3 groups seem to emerge and are mostly equivalent to those highlighted on the raw data (which is expected of course, since the PCA just summarises the data and removes noise).
+Hierarchical clustering (Euclidean distance, Ward aggregation method) is performed on the coordinates of the solutions on those first 4 PCs. As before, 3 groups seem to emerge and are mostly equivalent to those highlighted on the raw data (which is expected of course, since the PCA just summarises the data and removes noise).
 
 ```{r clust_on_PCA}
 # perform synthetic clustering
@@ -183,12 +183,12 @@ plot(hc_pca)
 par(pars)
 ```
 
-The real interest here is that the clusters can reprojected in the PCA space where the solutions can be invidually related to the criteria in which they score well. The two following plots represent:
+The real interest here is that the clusters can re-projected in the PCA space where the solutions can be individually related to the criteria in which they score well. The two following plots represent:
 
 1. the solutions distributed in space according to their scoring patterns and clustered into groups of solutions with similar scoring patterns
 2. the criteria that determine the distribution of solutions in the PCA space; if a solution is in the direction in which a criterion points, it has a high score according to this criterion (and if it is in the opposite direction, it has a low score); the angle between the lines of the criteria reflect their correlation: two lines close to each other means that most solutions have similar scores for these two criteria, two lines at 90º angle means that solutions have scores that are completely uncorrelated for these two criteria.
 
-In both cases, the solutions or criteria which are not well represented in this PCA space (i.e. which have quite non-decript scoring patterns) are made semi-transparent.
+In both cases, the solutions or criteria which are not well represented in this PCA space (i.e. which have quite nondescript scoring patterns) are made semi-transparent.
 
 ```{r PCA_and_clust, fig.height=5, fig.width=6}
 # plot result of PCA and clustering together
