@@ -126,7 +126,7 @@ d <- dst %>%
     # replace empty scores
     Score0=replace(Score, is.na(Score), 0),
     # compute colors manually
-    Color=ifelse(is.na(Score), "grey", brewer_map(Score0, name="RgYlGn")) # red=0, green=5; alternatives RdYlBu (PRGn)
+    Color=ifelse(is.na(Score), "grey", brewer_map(Score0, name="RdYlGn")) # red=0, green=5; alternatives RdYlBu (PRGn)
   ) %>%
   # sort by Score within each solution
   arrange(Solutions, desc(Score)) %>%
