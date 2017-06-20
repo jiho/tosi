@@ -155,12 +155,53 @@ chordDiagram(d,
   h.ratio=0.6, transparency=0.1,
   directional=1, direction.type="diffHeight"
 )
+
+
+d_global <- filter(d, Criteria %in% levels(d$Criteria)[1:nlevels(t1$Criteria)])
+chordDiagram(d_global,
+  # map precomputed color to lines
+  col=d$Color,
+  order=c(levels(d$Criteria), levels(d$Solutions)),
+  # color grid according to type of data: criterion or solution
+  grid.col=rep(
+    c("grey0", "grey80"),
+    times=c(nlevels(t1$Criteria), nlevels(d$Solutions))
+  ),
+  # remove axis around plot
+  annotationTrack=c("name", "grid"),
+  # put green lines one top
+  link.largest.ontop=TRUE,
+  # plot aspect
+  h.ratio=0.6, transparency=0.1,
+  directional=1, direction.type="diffHeight"
+)
+
+
+d_local <- filter(d, Criteria %in% levels(d$Criteria)[(nlevels(t1$Criteria)+1):nlevels(d$Criteria)])
+chordDiagram(d_local,
+  # map precomputed color to lines
+  col=d$Color,
+  order=c(levels(d$Criteria), levels(d$Solutions)),
+  # color grid according to type of data: criterion or solution
+  grid.col=rep(
+    c("grey0", "grey80"),
+    times=c(nlevels(t3$Criteria), nlevels(d$Solutions))
+  ),
+  # remove axis around plot
+  annotationTrack=c("name", "grid"),
+  # put green lines one top
+  link.largest.ontop=TRUE,
+  # plot aspect
+  h.ratio=0.6, transparency=0.1,
+  directional=1, direction.type="diffHeight"
+)
+
 ```
 
 
 Fig x: Same legend as above. Boxes should be drawn around solutions and criteria to better define them
 
-```{r alluvial, fig.height=9}
+```{r alluvial, fig.height=9, warning=FALSE}
 library("alluvial")
 # shorten label
 levels(d$Criteria) <- str_wrap(levels(d$Criteria), width=16)
@@ -175,6 +216,29 @@ alluvial(
   # cleaner aspect
   border=NA, alpha=0.9, xw=0.2, cw=0.12, blocks=F, gap.width=0.15, cex=0.8
 )
+
+alluvial(
+  # draw lines, ordered by score in each solution
+  d_global[,2:1], freq=1,
+  ordering=list(with(d_global, order(Solutions, Score)), NULL),
+  # map color
+  col=d_global$Color,
+  # cleaner aspect
+  border=NA, alpha=0.9, xw=0.2, cw=0.12, blocks=F, gap.width=0.15, cex=0.8,
+  axis_labels=c("Solutions", "Global\ncriteria")
+)
+
+alluvial(
+  # draw lines, ordered by score in each solution
+  d_local[,2:1], freq=1,
+  ordering=list(with(d_local, order(Solutions, Score)), NULL),
+  # map color
+  col=d_local$Color,
+  # cleaner aspect
+  border=NA, alpha=0.9, xw=0.2, cw=0.12, blocks=F, gap.width=0.15, cex=0.8,
+  axis_labels=c("Solutions", "Local\ncriteria")
+)
+
 ```
 
 
