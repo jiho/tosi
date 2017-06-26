@@ -1,5 +1,5 @@
 ---
-author: J-O Irisson
+author: J-P Gattuso, J-O Irisson
 output: 
   html_document: 
     css: document.css
@@ -7,7 +7,7 @@ output:
 
 # Clustering of CC mitigation solutions
 
-*J-G Gattuso, J-O Irisson  
+*J-P Gattuso, J-O Irisson  
 `r Sys.Date()`*
 
 
