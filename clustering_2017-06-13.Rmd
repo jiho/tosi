@@ -243,6 +243,101 @@ alluvial(
 )
 ```
 
+### Custom line plot
+
+```{r butterfly, fig.height=7, fig.width=10}
+# compute effectiveness to reduce CC
+d_effect <- t3 %>%
+  gather(key="Solutions", value="Score", -Category, -Criteria) %>%
+  # remove cobenefits and lack of unintended => focus on effectiveness to reduce CC effects
+  filter(str_detect(Criteria, "Reduce")) %>%
+  # average effectiveness scores
+  group_by(Category, Solutions) %>%
+  summarise(effect=mean(Score, na.rm=T)) %>% 
+  ungroup()
+# separate ecosystem vs ecosystem services
+d_effect$Cat_type <- ifelse(d_effect$Category %in% c("Arctic biota", "Coral reefs", "Mangroves and saltmarshes", "Seagrass habitats"), "ecosystem", "ecosystem services")
+# separate solutions based on their scope
+d_effect$Sol_type <- ifelse(d_effect$Solutions %in% c("Albedo", "Alkalinity glob.", "Cloud", "Hybrids", "Productivity", "Renewables", "Vegetation glob."), "global", "local")
+
+# compute global feasability per solution
+d_feas <- dst %>% 
+  # focus on feasability
+  filter(Criteria %in% c("Readiness", "Lead time until full pot. effectiv.")) %>% 
+  # average scores
+  group_by(Solutions) %>%
+  summarise(feas=mean(Score, na.rm=T))
+
+
+# Plot:
+# place solutions on a circle around the outside of the plot (separating local solutions on the left and global solutions on the right)
+# place the ecosystem/ecosystem services on the inside
+# draw curves from solutions to the center, coloured according to 
+
+# compute coodinates of solutions along a circle
+free_space <- pi/6
+radius <- 20
+
+d_out_l <- d_effect %>% filter(Sol_type=="local") %>% select(Sol_type, Solutions) %>% unique() %>% 
+  mutate(a=seq(pi/2 + free_space, 3*pi/2 - free_space, length.out=length(unique(Solutions))))
+d_out_g <- d_effect %>% filter(Sol_type=="global") %>% select(Sol_type, Solutions) %>% unique() %>% 
+  mutate(a=seq(pi/2 - free_space, -pi/2 + free_space, length.out=length(unique(Solutions))))
+d_out <- bind_rows(d_out_l, d_out_g)
+d_out$x <- radius * cos(d_out$a)
+d_out$y <- radius * sin(d_out$a)
+
+# add feasbility
+d_out <- left_join(d_out, d_feas, by = "Solutions")
+
+# store coordinates in general data.frame
+d_effect <- left_join(d_effect, d_out, by = c("Solutions", "Sol_type"))
+
+
+# compute coordinates of categories in the center
+d_in <- d_effect %>% select(Cat_type, Category) %>% unique() %>% group_by(Cat_type) %>%
+  mutate(yc=scale(as.numeric(factor(Category)))*radius/3)
+# store coordinates in general data.frame
+d_effect <- left_join(d_effect, d_in, by = c("Category", "Cat_type"))
+d_effect$xc <- ifelse(d_effect$Sol_type == "global", radius/6, -radius/6)
+
+# curvature should change along the vertical position
+d_effect$curv <- d_effect$y / 50
+d_effect$curv <- ifelse(d_effect$Sol_type == "global", -d_effect$curv, d_effect$curv)
+
+# 
+curves <- function(x, y, xend, yend, curvature, colour, ...) {
+  df <- data.frame(x, y, xend, yend, curvature, colour)
+  plyr::alply(df, 1, function(x) {
+    geom_curve(aes(x, y, xend=xend, yend=yend, colour=colour), data=x, curvature=round(x$curvature, 2), ...)
+  })
+}
+
+ggplot() + coord_fixed() + scale_x_continuous(expand=c(0,7)) + theme_void() +
+  # joining lines
+  with(filter(d_effect, Cat_type=="ecosystem"), curves(x=x, y=y, xend=xc, yend=yc, curvature=curv, colour=effect, alpha=0.85, size=2, ncp=7, lineend="round")) +
+  # solutions
+  geom_point(aes(x, y, size=feas), data=d_out) +
+  geom_text(aes(x*1.05, y*1.05, label=str_wrap(Solutions, 17)), hjust="outward", vjust="outward", d_out) +
+  # ecosystems/ecosystem services
+  geom_text(aes(x=0, y=yc, label=str_wrap(Category, 15)), filter(d_in, Cat_type=="ecosystem")) +
+  # niceties
+  scale_color_gradientn("Combined\neffectiv.", colours=viridis_colors(6), limits=c(1,5)) +
+  scale_size_area("Overall\nfeasability", max_size=10, limits=c(1,5))
+ggsave("fig_butterfly_1.pdf")
+
+
+ggplot() + coord_fixed() + scale_x_continuous(expand=c(0,7)) + theme_void() +
+  # joining lines
+  with(filter(d_effect, Cat_type=="ecosystem services"), curves(x=x, y=y, xend=xc, yend=yc, curvature=curv, colour=effect, alpha=0.85, size=2, ncp=7, lineend="round")) +
+  # solutions
+  geom_point(aes(x, y, size=feas), data=d_out) +
+  geom_text(aes(x*1.05, y*1.05, label=str_wrap(Solutions, 17)), hjust="outward", vjust="outward", d_out) +
+  # ecosystems/ecosystem services
+  geom_text(aes(x=0, y=yc, label=str_wrap(Category, 15)), filter(d_in, Cat_type=="ecosystem services")) +
+  # niceties
+  scale_color_gradientn("Combined\neffectiv.", colours=viridis_colors(6), limits=c(1,5)) +
+  scale_size_area("Overall\nfeasability", max_size=10, limits=c(1,5))
+ggsave("fig_butterfly_2.pdf")
 ```
 
 
