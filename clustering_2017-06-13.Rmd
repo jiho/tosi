@@ -222,10 +222,10 @@ alluvial(
 
 alluvial(
   # draw lines, ordered by score in each solution
-  d_global[,2:1], freq=1,
-  ordering=list(with(d_global, order(Solutions, Score)), NULL),
+  d_drivers[,2:1], freq=1,
+  ordering=list(with(d_drivers, order(Solutions, Score)), NULL),
   # map color
-  col=d_global$Color,
+  col=d_drivers$Color,
   # cleaner aspect
   border=NA, alpha=0.9, xw=0.2, cw=0.12, blocks=F, gap.width=0.15, cex=0.8,
   axis_labels=c("Solutions", "Global\ncriteria")
@@ -233,10 +233,10 @@ alluvial(
 
 alluvial(
   # draw lines, ordered by score in each solution
-  d_local[,2:1], freq=1,
-  ordering=list(with(d_local, order(Solutions, Score)), NULL),
+  d_criteria[,2:1], freq=1,
+  ordering=list(with(d_criteria, order(Solutions, Score)), NULL),
   # map color
-  col=d_local$Color,
+  col=d_criteria$Color,
   # cleaner aspect
   border=NA, alpha=0.9, xw=0.2, cw=0.12, blocks=F, gap.width=0.15, cex=0.8,
   axis_labels=c("Solutions", "Local\ncriteria")
