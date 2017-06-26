@@ -304,7 +304,7 @@ d_effect$xc <- ifelse(d_effect$Sol_type == "global", radius/6, -radius/6)
 d_effect$curv <- d_effect$y / 50
 d_effect$curv <- ifelse(d_effect$Sol_type == "global", -d_effect$curv, d_effect$curv)
 
-# 
+# geom_curve does not allow to change the curvature so we plot each curve separately (not very elegant but works...)
 curves <- function(x, y, xend, yend, curvature, colour, ...) {
   df <- data.frame(x, y, xend, yend, curvature, colour)
   plyr::alply(df, 1, function(x) {
@@ -312,6 +312,7 @@ curves <- function(x, y, xend, yend, curvature, colour, ...) {
   })
 }
 
+# ecosystems
 ggplot() + coord_fixed() + scale_x_continuous(expand=c(0,7)) + theme_void() +
   # joining lines
   with(filter(d_effect, Cat_type=="ecosystem"), curves(x=x, y=y, xend=xc, yend=yc, curvature=curv, colour=effect, alpha=0.85, size=2, ncp=7, lineend="round")) +
@@ -325,7 +326,7 @@ ggplot() + coord_fixed() + scale_x_continuous(expand=c(0,7)) + theme_void() +
   scale_size_area("Overall\nfeasability", max_size=10, limits=c(1,5))
 ggsave("fig_butterfly_1.pdf")
 
-
+# ecosystem services
 ggplot() + coord_fixed() + scale_x_continuous(expand=c(0,7)) + theme_void() +
   # joining lines
   with(filter(d_effect, Cat_type=="ecosystem services"), curves(x=x, y=y, xend=xc, yend=yc, curvature=curv, colour=effect, alpha=0.85, size=2, ncp=7, lineend="round")) +
