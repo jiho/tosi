@@ -263,7 +263,8 @@ n <- 3 # based on the genral aspect of the plot
 # nice plot
 pars <- par(no.readonly=T)
 par(mai=c(2,0.5,0.1,0.1))
-cols <- hue.colors(n)
+# cols <- hue_colors(n)
+cols <- brewer_colors(3, name = "Dark2")[c(2,1,3)] # keep order compared to hue colors
 hc <- color_labels(hc, k=n, col=cols)
 hc <- color_branches(hc, k=n, col=cols)
 plot(hc)
@@ -285,7 +286,8 @@ n <- 3 # based on the general aspect of the plot
 # nice plot
 pars <- par(no.readonly=T)
 par(mai=c(2,0.5,0.1,0.1))
-cols <- hue.colors(n)
+# cols <- hue_colors(n)
+cols <- brewer_colors(3, name = "Dark2")[c(2,1,3)]
 hc <- color_labels(hc, k=n, col=cols)
 hc <- color_branches(hc, k=n, col=cols)
 plot(hc)
@@ -311,7 +313,7 @@ This plot can be read as:
 
 - the green solutions are particularly effective (high scores) against warming, both local and global. They also tend to be more effective against acidification. They are quite ineffective against other drivers and have low scores for global governability, cost effectiveness and co-benefits.
 - the red solutions are practical: high readiness, goog governability, few unintended effects, and high co-benefits; however they are not very effective against warming and acidification
-- the blue solutions are mostly average everywhere, except they have somewhat good cost effectiveness, low co-benefits, and are not very effective to moderate acidification globally.
+- the purple solutions are mostly average everywhere, except they have somewhat good cost effectiveness, low co-benefits, and are not very effective to moderate acidification globally.
 
 
 ## PCA then clustering
@@ -351,7 +353,8 @@ n <- 3 # based on the genral aspect of the plot
 # nice plot
 pars <- par(no.readonly=T)
 par(mai=c(2,0.5,0.1,0.1))
-cols <- hue.colors(n)
+# cols <- hue_colors(n)
+cols <- brewer_colors(3, name = "Dark2")[c(2,1,3)]
 hc_pca <- color_labels(hc_pca, k=n, col=cols)
 hc_pca <- color_branches(hc_pca, k=n, col=cols)
 plot(hc_pca)
@@ -367,6 +370,7 @@ In both cases, the criteria or solutions which are not well represented in this 
 
 ```{r PCA_and_clust, fig.height=5, fig.width=6}
 # plot result of PCA and clustering together
+
 
 #' Extract data from a PCA object
 #'
@@ -411,14 +415,14 @@ pv12 <- ggplot(pca_v12, aes(alpha=cos2)) +
   geom_segment(aes(x=0, y=0, xend=Dim.1, yend=Dim.2), arrow=arrow(angle=15, length=unit(0.02, "npc"))) +
   # geom_text(aes(x=Dim.1, y=Dim.2, label=label), hjust=0.5, vjust=0.5, size=3) +
   geom_text_repel(aes(x=Dim.1, y=Dim.2, label=label), segment.alpha=0.2, min.segment.length=unit(0.02, "npc"), size=3) +
-  scale_alpha(limits=c(0,0.9)) +
+  scale_alpha(limits=c(0,0.9), range = c(0.5,1)) +
   scale_x_continuous(breaks=0, expand=c(0.05, 0.2)) +
   scale_y_continuous(breaks=0, expand=c(0.05, 0.2)) +
   coord_pca
 
 pi12 <- ggplot(pca_i12, aes(Dim.1, Dim.2, alpha=cos2, colour=colour)) +
-  geom_point(shape=16) + geom_text_repel(aes(label=label), size=3) +
-  scale_colour_identity() + scale_alpha(limits=c(0,0.9)) +
+  geom_point(shape=16) + geom_text_repel(aes(label=label), size=3, show_guide=FALSE) +
+  scale_colour_identity() + scale_alpha(limits=c(0,0.9), range = c(0.5,1)) +
   scale_x_continuous(breaks=0) + scale_y_continuous(breaks=0) +
   coord_pca
 
@@ -519,14 +523,15 @@ paper_theme <- function(base_size=10, ...) {
 
 # layout figures side by side
 library("gridExtra")
-grid.arrange(
-  pv12 + paper_theme(12) + guides(alpha="none") + scale_y_continuous(breaks=0, expand=c(0.05,0.45)),
-  pi12 + paper_theme(12) + labs(alpha="Repr.", y=NULL),
+p <- grid.arrange(
+  pv12 + paper_theme(12) + guides(alpha="none") + scale_y_continuous(breaks=0, expand=c(0.05,0.45)) + annotation_custom(grid::textGrob("A"), xmin=-1.6, xmax=-1.6, ymin=1.6, ymax=1.6),
+  pi12 + paper_theme(12) + labs(alpha="Repr.", y=NULL) + annotation_custom(grid::textGrob("B"), xmin=5, xmax=5, ymin=3.8, ymax=3.8),
   nrow=1
 )
 # output at x2 the final size
 # NB: font size was 12pt => 6pt at final size
-foo <- dev.print(device=pdf, file="fig_pca.pdf", width=4.75*2)
+ggsave(p, filename=paste0("fig_pca_", Sys.Date(), ".pdf"), width=4.75*2, units="in")
+ggsave(p, filename=paste0("fig_pca_", Sys.Date(), ".png"), width=4.75*2, units="in")
 ```
 
 *Fig. XX. Principal Components Analysis of the attributes of ocean-based solutions.  
