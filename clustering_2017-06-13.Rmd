@@ -312,7 +312,7 @@ ggplot(dsg) + geom_violin(aes(x=Criteria, y=Score, fill=colour), scale="width", 
 This plot can be read as:
 
 - the green solutions are particularly effective (high scores) against warming, both local and global. They also tend to be more effective against acidification. They are quite ineffective against other drivers and have low scores for global governability, cost effectiveness and co-benefits.
-- the red solutions are practical: high readiness, goog governability, few unintended effects, and high co-benefits; however they are not very effective against warming and acidification
+- the red solutions are practical: high readiness, good governability, few unintended effects, and high co-benefits; however they are not very effective against warming and acidification
 - the purple solutions are mostly average everywhere, except they have somewhat good cost effectiveness, low co-benefits, and are not very effective to moderate acidification globally.
 
 
