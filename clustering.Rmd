@@ -255,8 +255,10 @@ d_effect <- t3 %>%
   group_by(Category, Solutions) %>%
   summarise(effect=mean(Score, na.rm=T)) %>% 
   ungroup()
+
 # separate ecosystem vs ecosystem services
 d_effect$Cat_type <- ifelse(d_effect$Category %in% c("Arctic biota", "Coral reefs", "Mangroves and saltmarshes", "Seagrass habitats"), "ecosystem", "ecosystem services")
+
 # separate solutions based on their scope
 d_effect$Sol_type <- ifelse(d_effect$Solutions %in% c("Albedo", "Alkalinity glob.", "Cloud", "Hybrids", "Productivity", "Renewables", "Vegetation glob."), "global", "local")
 
