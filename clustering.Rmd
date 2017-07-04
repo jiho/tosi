@@ -344,6 +344,35 @@ ggsave("fig_butterfly_2.pdf")
 ```
 
 
+
+
+### Scatter plot
+
+```{r scatterplot}
+d_effect <- dst %>% filter(str_detect(Criteria, "Moderate") | str_detect(Criteria, "Reduce")) %>% group_by(Solutions) %>% summarise(`Combined effectiveness`=mean(Score, na.rm=T))
+d_feas <- dst %>% filter(Criteria %in% c("Readiness", "Lead time until full pot. effectiv.")) %>% group_by(Solutions) %>% summarise(`Overall feasability`=mean(Score, na.rm=T))
+dss <- full_join(d_effect, d_feas, by = "Solutions")
+
+ggplot(dss, aes(x=`Combined effectiveness`, y=`Overall feasability`, label=Solutions)) + geom_point() + geom_text_repel() + coord_fixed() + xlim(1,5) + ylim(1,5)
+```
+
+### Checker board
+
+```{r checkboard}
+dd <- dst
+dd$category <- ifelse(dd$Criteria %in% levels(dst$Criteria)[1:8], "global", "local")
+dss$category <- "aggregate"
+dsst <- gather(dss, key=Criteria, value=Score, -Solutions, -category)
+dd <- bind_rows(dd, dsst)
+
+# reset factor levels
+dd$Criteria <- factor(dd$Criteria, levels=c(unique(dsst$Criteria), levels(dst$Criteria)))
+dd$Solutions <- factor(dd$Criteria, levels=c(unique(dsst$Criteria), levels(dst$Criteria)))
+
+ggplot(dd) + geom_raster(aes(x=Criteria, y=Solutions, fill=Score)) + scale_fill_gradientn(colours=viridis_colors(6)) + coord_fixed() + theme(axis.text.x=element_text(angle=45, hjust=1)) + scale_x_discrete(expand=c(0,0)) + scale_y_discrete(expand=c(0,0)) + facet_grid(.~category, scales="free_x", shrink=F, space="free_x")
+```
+
+
 ## Clustering
 
 Clustering the full, non-aggregated data set, with hierarchical clustering (Euclidean distance, Ward aggregation method to highlight synthetic groups) suggests three groups:
@@ -603,7 +632,7 @@ Hope that helps!
 
 ### Main text
 
-```{r fig.width=4.75*2, warning=F, message=F}
+```{r PCA_paper, fig.width=4.75*2, warning=F, message=F}
 paper_theme <- function(base_size=10, ...) {
   theme_linedraw(base_size=base_size, ...) +
   theme(
