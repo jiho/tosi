@@ -34,10 +34,10 @@ library("chroma")
 ```{r read_data}
 ## Global effects
 t1a <- read_csv(file="table_1a.csv", col_types=cols()) %>% 
-        rename(`Alkalinity glob.`=Alkalinity, `Vegetation glob.`=Vegetation)
+        rename(`Alkalinization (g)`=Alkalinization, `Vegetation (g)`=Vegetation)
 
 t1b <- read_csv(file="table_1b.csv", col_types=cols()) %>% 
-        rename(`Alkalinity loc.`=Alkalinity, `Vegetation loc.`=Vegetation, `Relocation, Restoration`=Relocation_Restoration)
+        rename(`Alkalinization (l)`=Alkalinization, `Vegetation (l)`=Vegetation, `Relocation, Restoration`=Relocation_Restoration)
 # score relative and absolute sea level rise together
 t1b$Criteria <- str_replace(t1b$Criteria, "Moderate relative sea", "Moderate sea")
 
@@ -54,15 +54,15 @@ t1$Criteria <- t1$Criteria %>%
 t3 <- read_csv(file="table_3.csv", col_types=cols()) 
 # make names clearer
 t3 <- t3 %>% rename(`Relocation, Restoration`=Relocation_Restoration)
-names(t3) <- str_replace(names(t3), "_g", " glob.")
-names(t3) <- str_replace(names(t3), "_l", " loc.")
+names(t3) <- str_replace(names(t3), "_g", " (g)")
+names(t3) <- str_replace(names(t3), "_l", " (l)")
 t3$Criteria <- t3$Criteria %>% 
   # make labels clearer
   str_replace("_", " ") %>% 
   str_replace("Warming", "Reduce impact of warming") %>% 
   str_replace("Acidification", "Reduce impact of acidification") %>% 
   str_replace("Sea level rise", "Reduce impact of sea level rise") %>% 
-  str_replace("Other drivers", "Reduce impact of other drivers") %>% 
+  str_replace("Other drivers", "Reduce impacts of other drivers") %>% 
   # force order
   factor(levels=unique(.))
 
@@ -260,12 +260,12 @@ d_effect <- t3 %>%
 d_effect$Cat_type <- ifelse(d_effect$Category %in% c("Arctic biota", "Coral reefs", "Mangroves and saltmarshes", "Seagrass habitats"), "ecosystem", "ecosystem services")
 
 # separate solutions based on their scope
-d_effect$Sol_type <- ifelse(d_effect$Solutions %in% c("Albedo", "Alkalinity glob.", "Cloud", "Hybrids", "Productivity", "Renewables", "Vegetation glob."), "global", "local")
+d_effect$Sol_type <- ifelse(d_effect$Solutions %in% c("Albedo enhancement", "Alkalinization (g)", "Cloud brightening", "Hybrids", "Fertilization", "Renewable energy", "Vegetation (g)"), "global", "local")
 
 # compute global feasability per solution
 d_feas <- dst %>% 
   # focus on feasability
-  filter(Criteria %in% c("Readiness", "Lead time until full pot. effectiv.")) %>% 
+  filter(Criteria %in% c("Technological readiness", "Lead time until full pot. effectiv.")) %>% 
   # average scores
   group_by(Solutions) %>%
   summarise(feas=mean(Score, na.rm=T))
@@ -350,7 +350,7 @@ ggsave("fig_butterfly_2.pdf")
 
 ```{r scatterplot}
 d_effect <- dst %>% filter(str_detect(Criteria, "Moderate") | str_detect(Criteria, "Reduce")) %>% group_by(Solutions) %>% summarise(`Combined effectiveness`=mean(Score, na.rm=T))
-d_feas <- dst %>% filter(Criteria %in% c("Readiness", "Lead time until full pot. effectiv.")) %>% group_by(Solutions) %>% summarise(`Overall feasability`=mean(Score, na.rm=T))
+d_feas <- dst %>% filter(Criteria %in% c("Technological readiness", "Lead time until full pot. effectiv.")) %>% group_by(Solutions) %>% summarise(`Overall feasability`=mean(Score, na.rm=T))
 dss <- full_join(d_effect, d_feas, by = "Solutions")
 
 ggplot(dss, aes(x=`Combined effectiveness`, y=`Overall feasability`, label=Solutions)) + geom_point() + geom_text_repel() + coord_fixed() + xlim(1,5) + ylim(1,5)
@@ -358,7 +358,7 @@ ggplot(dss, aes(x=`Combined effectiveness`, y=`Overall feasability`, label=Solut
 
 ### Checker board
 
-```{r checkboard}
+```{r checkboard, warning=F}
 dd <- dst
 dd$category <- ifelse(dd$Criteria %in% levels(dst$Criteria)[1:8], "global", "local")
 dss$category <- "aggregate"
@@ -367,7 +367,6 @@ dd <- bind_rows(dd, dsst)
 
 # reset factor levels
 dd$Criteria <- factor(dd$Criteria, levels=c(unique(dsst$Criteria), levels(dst$Criteria)))
-dd$Solutions <- factor(dd$Criteria, levels=c(unique(dsst$Criteria), levels(dst$Criteria)))
 
 ggplot(dd) + geom_raster(aes(x=Criteria, y=Solutions, fill=Score)) + scale_fill_gradientn(colours=viridis_colors(6)) + coord_fixed() + theme(axis.text.x=element_text(angle=45, hjust=1)) + scale_x_discrete(expand=c(0,0)) + scale_y_discrete(expand=c(0,0)) + facet_grid(.~category, scales="free_x", shrink=F, space="free_x")
 ```
@@ -569,8 +568,8 @@ These plots are read as follows:
 
 and
 
--  The solutions in the green group are effective against warming and acidification (arrows in the second plot point in their direction in the first plot). Hybrids and Albedo are particularly effective for warming-related stuff. Alkalinity global and Renewables are particularly effective for acidification-related stuff. As already explained, in turn, they have poor scores in Global governability, reducing the impact of other drivers, etc. which point in the opposite direction.
-- The solutions in the red group are basically the contrary of those in the green group regarding warming and governability, other drivers, co-benefits, readiness. The solutions Vegetation loc., Pollution, Protection have a high degree of readiness, last long, and have good co-benefits.
+-  The solutions in the green group are effective against warming and acidification (arrows in the second plot point in their direction in the first plot). Hybrids and Albedo are particularly effective for warming-related stuff. Alkalinization global and Renewables are particularly effective for acidification-related stuff. As already explained, in turn, they have poor scores in Global governability, reducing the impact of other drivers, etc. which point in the opposite direction.
+- The solutions in the red group are basically the contrary of those in the green group regarding warming and governability, other drivers, co-benefits, readiness. The solutions Vegetation (l), Pollution, Protection have a high degree of readiness, last long, and have good co-benefits.
 - The blue group is not very specific. The only pattern is that Cloud is not effective for mitigating acidification and basically scores bad everywhere.
 
 ```{r biplot, fig.height=7, fig.width=7}
@@ -621,7 +620,7 @@ ggplot(pca_i23, aes(Dim.2, Dim.3, alpha=cos2, colour=colour)) +
 
 This does not add much information (as expected since PCs 1 and 2 already capture 62% of the variance). We could still remark that:
 
-- Alkalinity loc is somewhat effective against acidification and not very effective against sea level rise (which seems like it can be expected even by my non-specialist-self ;-) )
+- Alkalinization loc is somewhat effective against acidification and not very effective against sea level rise (which seems like it can be expected even by my non-specialist-self ;-) )
 - Evolution and Productivity are confirmed to have mostly bad scores in everything.
 
 Hope that helps!
@@ -670,7 +669,7 @@ The scores of attributes were averaged across ecosystems and ecosystem services.
 
 The first principal component is mostly driven by governability, readiness, co-benefits and, to a lesser extent, the duration of the effect and the lack of unintended effects (Fig. Xa). Therefore, it can be considered to represent "feasibility". By definition of the PCA, solutions differ most in these feasibility attributes (>40% of the variance). In particular, most solutions effective to reduce warming and its impacts have low feasibility. Along the second principal component most arrows point up, so it could be broadly interpreted as "efficacy". A number of attributes (effectiveness to moderate sea level rise, lead time until full effectiveness and cost effectiveness) are not immediately useful to discriminate solutions.
 
-Three groups of solutions emerge (Fig. Xb). Measures in green (renewable energy, alkalinity addition at global scale, increased albedo and hybrid measures) are effective to reduce warming, acidification, and their impacts but, as explained above, score low in feasibility. In contrast, measures in red have low effectiveness to reduce warming and its impact and moderate effectiveness to reduce ocean acidification and its impact. They are, however, technically ready, have significant co-benefits, few dis-benefits and can also help reduce the impact of other drivers of climate change. This group comprises almost all local measures. Finally, solutions in the blue group score averagely in all of the attributes assessed. It comprises alkalinity addition implemented at local scale, evolution, productivity and marine cloud brightening, the later faring particularly poorly for moderation of ocean acidification.
+Three groups of solutions emerge (Fig. Xb). Measures in green (renewable energy, Alkalinization addition at global scale, increased albedo and hybrid measures) are effective to reduce warming, acidification, and their impacts but, as explained above, score low in feasibility. In contrast, measures in red have low effectiveness to reduce warming and its impact and moderate effectiveness to reduce ocean acidification and its impact. They are, however, technically ready, have significant co-benefits, few dis-benefits and can also help reduce the impact of other drivers of climate change. This group comprises almost all local measures. Finally, solutions in the blue group score averagely in all of the attributes assessed. It comprises Alkalinization addition implemented at local scale, evolution, productivity and marine cloud brightening, the later faring particularly poorly for moderation of ocean acidification.
 
 ### Methods
 
