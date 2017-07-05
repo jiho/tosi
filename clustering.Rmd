@@ -139,8 +139,8 @@ d <- dst %>%
   as.data.frame()
 
 # shorten label
-levels(d$Criteria) <- str_wrap(levels(d$Criteria), width=12)
-levels(d$Solutions) <- str_wrap(levels(d$Solutions), width=12)
+levels(d$Criteria) <- str_wrap(levels(d$Criteria), width=16)
+levels(d$Solutions) <- str_wrap(levels(d$Solutions), width=16)
 
 chordDiagram(d,
   # map precomputed color to lines
@@ -206,9 +206,6 @@ Fig x: Same legend as above. Boxes should be drawn around solutions and criteria
 
 ```{r alluvial, fig.height=9, warning=FALSE}
 library("alluvial")
-# shorten label
-levels(d$Criteria) <- str_wrap(levels(d$Criteria), width=16)
-levels(d$Solutions) <- str_wrap(levels(d$Solutions), width=16)
 
 alluvial(
   # draw lines, ordered by score in each solution
@@ -532,7 +529,7 @@ pca_i12 <- left_join(pca_i12, groups, by = "label")
 pca_v12 <- augment(pca, which="var")
 
 pvar <- round(pca$eig$`percentage of variance`[1:2], 1)
-coord_pca <- list(
+coord_pca_12 <- list(
   coord_fixed(),
   labs(x=paste0("PC1 (", pvar[1], "%)"), y=paste0("PC2 (", pvar[2], "%)"))
 )
@@ -544,14 +541,14 @@ pv12 <- ggplot(pca_v12, aes(alpha=cos2)) +
   scale_alpha(limits=c(0,0.9), range = c(0.4,1)) +
   scale_x_continuous(breaks=0, expand=c(0.05, 0.2)) +
   scale_y_continuous(breaks=0, expand=c(0.05, 0.2)) +
-  coord_pca
+  coord_pca_12
 
 pi12 <- ggplot(pca_i12, aes(Dim.1, Dim.2, alpha=cos2, colour=colour)) +
   geom_point(shape=16, show.legend=FALSE) + geom_text_repel(aes(label=label, size=cos2)) +
   scale_colour_identity() + scale_alpha(limits=c(0,0.9), range = c(0.5,1)) +
   scale_size(limits=c(0,0.9), range=c(0.5,4)) +
   scale_x_continuous(breaks=0) + scale_y_continuous(breaks=0) +
-  coord_pca
+  coord_pca_12
 
 pv12
 
@@ -597,7 +594,7 @@ pca_i23 <- left_join(pca_i23, groups, by = "label")
 pca_v23 <- augment(pca, which="var", dimensions=c(2,3))
 
 pvar <- round(pca$eig$`percentage of variance`[2:3], 1)
-coord_pca <- list(
+coord_pca_23 <- list(
   coord_fixed(),
   labs(x=paste0("PC2 (", pvar[1], "%)"), y=paste0("PC3 (", pvar[2], "%)"))
 )
@@ -609,13 +606,13 @@ ggplot(pca_v23, aes(alpha=cos2)) +
   scale_alpha(limits=c(0,0.9)) +
   scale_x_continuous(breaks=0, expand=c(0.05, 0.2)) +
   scale_y_continuous(breaks=0, expand=c(0.05, 0.2)) +
-  coord_pca
+  coord_pca_23
 
 ggplot(pca_i23, aes(Dim.2, Dim.3, alpha=cos2, colour=colour)) +
   geom_point() + geom_text_repel(aes(label=label), size=3) +
   scale_colour_identity() + scale_alpha(limits=c(0,0.9)) +
   scale_x_continuous(breaks=0) + scale_y_continuous(breaks=0) +
-  coord_pca
+  coord_pca_23
 ```
 
 This does not add much information (as expected since PCs 1 and 2 already capture 62% of the variance). We could still remark that:
