@@ -34,10 +34,10 @@ library("chroma")
 ```{r read_data}
 ## Global effects
 t1a <- read_csv(file="table_1a.csv", col_types=cols()) %>% 
-        rename(`Alkalinization (g)`=Alkalinization, `Vegetation (g)`=Vegetation)
+        rename(`Alkalinization (g)`=Alkalinity, `Vegetation (g)`=Vegetation)
 
 t1b <- read_csv(file="table_1b.csv", col_types=cols()) %>% 
-        rename(`Alkalinization (l)`=Alkalinization, `Vegetation (l)`=Vegetation, `Relocation, Restoration`=Relocation_Restoration)
+        rename(`Alkalinization (l)`=Alkalinity, `Vegetation (l)`=Vegetation, `Relocation, Restoration`=Relocation_Restoration)
 # score relative and absolute sea level rise together
 t1b$Criteria <- str_replace(t1b$Criteria, "Moderate relative sea", "Moderate sea")
 
