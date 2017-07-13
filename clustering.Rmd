@@ -51,7 +51,8 @@ t1$Criteria <- t1$Criteria %>%
 
 
 ## Local effects
-t3 <- read_csv(file="table_3.csv", col_types=cols()) 
+t3 <- read_csv(file="table_3.csv", col_types=cols()) %>%
+  rename(`Alkalinization (g)`=Alkalinity_g, `Vegetation (g)`=Vegetation_g, `Alkalinization (l)`=Alkalinity_l, `Vegetation (l)`=Vegetation_l)
 # make names clearer
 t3 <- t3 %>% rename(`Relocation, Restoration`=Relocation_Restoration)
 names(t3) <- str_replace(names(t3), "_g", " (g)")
