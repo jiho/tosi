@@ -323,7 +323,7 @@ ggplot() + coord_fixed() + scale_x_continuous(expand=c(0,7)) + theme_void() +
   geom_text(aes(x=0, y=yc, label=str_wrap(Category, 15)), filter(d_in, Cat_type=="ecosystem")) +
   # niceties
   scale_color_gradientn("Combined\neffectiv.", colours=viridis_colors(6), limits=c(1,5)) +
-  scale_size_area("Overall\nfeasability", max_size=10, limits=c(1,5))
+  scale_size_area("Overall\nfeasability", max_size=15, limits=c(1,5))
 ggsave("fig_butterfly_1.pdf")
 
 # ecosystem services
@@ -337,7 +337,7 @@ ggplot() + coord_fixed() + scale_x_continuous(expand=c(0,7)) + theme_void() +
   geom_text(aes(x=0, y=yc, label=str_wrap(Category, 15)), filter(d_in, Cat_type=="ecosystem services")) +
   # niceties
   scale_color_gradientn("Combined\neffectiv.", colours=viridis_colors(6), limits=c(1,5)) +
-  scale_size_area("Overall\nfeasability", max_size=10, limits=c(1,5))
+  scale_size_area("Overall\nfeasability", max_size=15, limits=c(1,5))
 ggsave("fig_butterfly_2.pdf")
 ```
 
