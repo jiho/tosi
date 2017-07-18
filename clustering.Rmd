@@ -26,6 +26,9 @@ library("ggrepel")
 library("dendextend")
 # devtools::install_github("jiho/chroma")
 library("chroma")
+MyTheme <- theme(legend.title = element_text(size = 12),
+                 legend.text = element_text(size = 12)
+)
 ```
 
 
@@ -258,7 +261,7 @@ d_effect <- t3 %>%
 d_effect$Cat_type <- ifelse(d_effect$Category %in% c("Arctic biota", "Coral reefs", "Mangroves and saltmarshes", "Seagrass habitats"), "ecosystem", "ecosystem services")
 
 # separate solutions based on their scope
-d_effect$Sol_type <- ifelse(d_effect$Solutions %in% c("Albedo enhancement", "Alkalinization (g)", "Cloud brightening", "Hybrids", "Fertilization", "Renewable energy", "Vegetation (g)"), "global", "local")
+d_effect$Sol_type <- ifelse(d_effect$Solutions %in% c("Albedo", "Alkalinization (g)", "Cloud", "Hybrids", "Fertilization", "Renewables", "Vegetation (g)"), "global", "local")
 
 # compute global feasability per solution
 d_feas <- dst %>% 
@@ -286,7 +289,7 @@ d_out <- bind_rows(d_out_l, d_out_g)
 d_out$x <- radius * cos(d_out$a)
 d_out$y <- radius * sin(d_out$a)
 
-# add feasbility
+# add feasibility
 d_out <- left_join(d_out, d_feas, by = "Solutions")
 
 # store coordinates in general data.frame
@@ -318,12 +321,13 @@ ggplot() + coord_fixed() + scale_x_continuous(expand=c(0,7)) + theme_void() +
   with(filter(d_effect, Cat_type=="ecosystem"), curves(x=x, y=y, xend=xc, yend=yc, curvature=curv, colour=effect, alpha=0.85, size=2, ncp=7, lineend="round")) +
   # solutions
   geom_point(aes(x, y, size=feas), data=d_out) +
-  geom_text(aes(x*1.05, y*1.05, label=str_wrap(Solutions, 17)), hjust="outward", vjust="outward", d_out) +
+  geom_text(aes(x*1.05, y*1.05, label=str_wrap(Solutions, 17)), hjust="outward", vjust="outward", d_out, size=10) +
   # ecosystems/ecosystem services
-  geom_text(aes(x=0, y=yc, label=str_wrap(Category, 15)), filter(d_in, Cat_type=="ecosystem")) +
+  geom_text(aes(x=0, y=yc, label=str_wrap(Category, 15)), filter(d_in, Cat_type=="ecosystem"), size=10) +
   # niceties
   scale_color_gradientn("Combined\neffectiv.", colours=viridis_colors(6), limits=c(1,5)) +
-  scale_size_area("Overall\nfeasability", max_size=15, limits=c(1,5))
+  scale_size_area("Overall\nfeasability", max_size=15, limits=c(1,5)) +
+  MyTheme
 ggsave("fig_butterfly_1.pdf")
 
 # ecosystem services
@@ -332,12 +336,13 @@ ggplot() + coord_fixed() + scale_x_continuous(expand=c(0,7)) + theme_void() +
   with(filter(d_effect, Cat_type=="ecosystem services"), curves(x=x, y=y, xend=xc, yend=yc, curvature=curv, colour=effect, alpha=0.85, size=2, ncp=7, lineend="round")) +
   # solutions
   geom_point(aes(x, y, size=feas), data=d_out) +
-  geom_text(aes(x*1.05, y*1.05, label=str_wrap(Solutions, 17)), hjust="outward", vjust="outward", d_out) +
+  geom_text(aes(x*1.05, y*1.05, label=str_wrap(Solutions, 17)), hjust="outward", vjust="outward", d_out, size=10) +
   # ecosystems/ecosystem services
-  geom_text(aes(x=0, y=yc, label=str_wrap(Category, 15)), filter(d_in, Cat_type=="ecosystem services")) +
+  geom_text(aes(x=0, y=yc, label=str_wrap(Category, 15)), filter(d_in, Cat_type=="ecosystem services"), size=10) +
   # niceties
   scale_color_gradientn("Combined\neffectiv.", colours=viridis_colors(6), limits=c(1,5)) +
-  scale_size_area("Overall\nfeasability", max_size=15, limits=c(1,5))
+  scale_size_area("Overall\nfeasability", max_size=15, limits=c(1,5)) +
+  MyTheme
 ggsave("fig_butterfly_2.pdf")
 ```
 
