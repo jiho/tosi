@@ -26,9 +26,6 @@ library("ggrepel")
 library("dendextend")
 # devtools::install_github("jiho/chroma")
 library("chroma")
-MyTheme <- theme(legend.title = element_text(size = 12),
-                 legend.text = element_text(size = 12)
-)
 ```
 
 
@@ -275,7 +272,7 @@ d_feas <- dst %>%
 # Plot:
 # place solutions on a circle around the outside of the plot (separating local solutions on the left and global solutions on the right)
 # place the ecosystem/ecosystem services on the inside
-# draw curves from solutions to the center, coloured according to 
+# draw curves from solutions to the center, coloured according to effectiveness
 
 # compute coodinates of solutions along a circle
 free_space <- pi/6
@@ -301,7 +298,7 @@ d_in <- d_effect %>% select(Cat_type, Category) %>% unique() %>% group_by(Cat_ty
   mutate(yc=scale(as.numeric(factor(Category)))*radius/3)
 # store coordinates in general data.frame
 d_effect <- left_join(d_effect, d_in, by = c("Category", "Cat_type"))
-d_effect$xc <- ifelse(d_effect$Sol_type == "global", radius/6, -radius/6)
+d_effect$xc <- ifelse(d_effect$Sol_type == "global", radius/5, -radius/5)
 
 # curvature should change along the vertical position
 d_effect$curv <- d_effect$y / 50
@@ -315,35 +312,40 @@ curves <- function(x, y, xend, yend, curvature, colour, ...) {
   })
 }
 
+MyTheme <- theme(
+  legend.title = element_text(size = 12),
+  legend.text = element_text(size = 12)
+)
+
 # ecosystems
-ggplot() + coord_fixed() + scale_x_continuous(expand=c(0,7)) + theme_void() +
+ggplot() + coord_fixed() + scale_x_continuous(expand=c(0,15)) + theme_void() +
   # joining lines
-  with(filter(d_effect, Cat_type=="ecosystem"), curves(x=x, y=y, xend=xc, yend=yc, curvature=curv, colour=effect, alpha=0.85, size=2, ncp=7, lineend="round")) +
+  with(filter(d_effect, Cat_type=="ecosystem"), curves(x=x, y=y, xend=xc, yend=yc, curvature=curv, colour=effect, alpha=0.85, size=1, ncp=7, lineend="round")) +
   # solutions
   geom_point(aes(x, y, size=feas), data=d_out) +
-  geom_text(aes(x*1.05, y*1.05, label=str_wrap(Solutions, 17)), hjust="outward", vjust="outward", d_out, size=10) +
+  geom_text(aes(x*1.08, y*1.08, label=str_wrap(Solutions, 20)), hjust="outward", vjust="outward", d_out, size=4) +
   # ecosystems/ecosystem services
-  geom_text(aes(x=0, y=yc, label=str_wrap(Category, 15)), filter(d_in, Cat_type=="ecosystem"), size=10) +
+  geom_text(aes(x=0, y=yc, label=str_wrap(Category, 13)), filter(d_in, Cat_type=="ecosystem"), size=4) +
   # niceties
   scale_color_gradientn("Combined\neffectiv.", colours=viridis_colors(6), limits=c(1,5)) +
-  scale_size_area("Overall\nfeasability", max_size=15, limits=c(1,5)) +
+  scale_size_area("Overall\nfeasability", max_size=10, limits=c(1,5)) +
   MyTheme
-ggsave("fig_butterfly_1.pdf")
+ggsave("fig_butterfly_1.pdf", width=17.5/1.5*2, height=8*2, unit="cm")
 
 # ecosystem services
-ggplot() + coord_fixed() + scale_x_continuous(expand=c(0,7)) + theme_void() +
+ggplot() + coord_fixed() + scale_x_continuous(expand=c(0,15)) + theme_void() +
   # joining lines
-  with(filter(d_effect, Cat_type=="ecosystem services"), curves(x=x, y=y, xend=xc, yend=yc, curvature=curv, colour=effect, alpha=0.85, size=2, ncp=7, lineend="round")) +
+  with(filter(d_effect, Cat_type=="ecosystem services"), curves(x=x, y=y, xend=xc, yend=yc, curvature=curv, colour=effect, alpha=0.85, size=1, ncp=7, lineend="round")) +
   # solutions
   geom_point(aes(x, y, size=feas), data=d_out) +
-  geom_text(aes(x*1.05, y*1.05, label=str_wrap(Solutions, 17)), hjust="outward", vjust="outward", d_out, size=10) +
+  geom_text(aes(x*1.08, y*1.08, label=str_wrap(Solutions, 20)), hjust="outward", vjust="outward", d_out, size=4) +
   # ecosystems/ecosystem services
-  geom_text(aes(x=0, y=yc, label=str_wrap(Category, 15)), filter(d_in, Cat_type=="ecosystem services"), size=10) +
+  geom_text(aes(x=0, y=yc, label=str_wrap(Category, 15)), filter(d_in, Cat_type=="ecosystem services"), size=4) +
   # niceties
   scale_color_gradientn("Combined\neffectiv.", colours=viridis_colors(6), limits=c(1,5)) +
-  scale_size_area("Overall\nfeasability", max_size=15, limits=c(1,5)) +
+  scale_size_area("Overall\nfeasability", max_size=10, limits=c(1,5)) +
   MyTheme
-ggsave("fig_butterfly_2.pdf")
+ggsave("fig_butterfly_2.pdf", width=17.5/1.5*2, height=8*2, unit="cm")
 ```
 
 
