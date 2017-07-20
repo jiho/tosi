@@ -546,14 +546,14 @@ pv12 <- ggplot(pca_v12, aes(alpha=cos2)) +
   geom_segment(aes(x=0, y=0, xend=Dim.1, yend=Dim.2), arrow=arrow(angle=15, length=unit(0.02, "npc"))) +
   # geom_text(aes(x=Dim.1, y=Dim.2, label=label), hjust=0.5, vjust=0.5, size=3) +
   geom_text_repel(aes(x=Dim.1, y=Dim.2, label=label), segment.alpha=0.2, min.segment.length=unit(0.02, "npc"), size=3) +
-  scale_alpha(limits=c(0,0.9), range = c(0.4,1)) +
+  scale_alpha(limits=c(0,0.9), range = c(0.6,1)) +
   scale_x_continuous(breaks=0, expand=c(0.05, 0.2)) +
   scale_y_continuous(breaks=0, expand=c(0.05, 0.2)) +
   coord_pca_12
 
 pi12 <- ggplot(pca_i12, aes(Dim.1, Dim.2, alpha=cos2, colour=colour)) +
   geom_point(shape=16, show.legend=FALSE) + geom_text_repel(aes(label=label, size=cos2)) +
-  scale_colour_identity() + scale_alpha(limits=c(0,0.9), range = c(0.5,1)) +
+  scale_colour_identity() + scale_alpha(limits=c(0,0.9), range = c(0.6,1)) +
   scale_size(limits=c(0,0.9), range=c(0.5,4)) +
   scale_x_continuous(breaks=0) + scale_y_continuous(breaks=0) +
   coord_pca_12
@@ -649,16 +649,17 @@ paper_theme <- function(base_size=12, ...) {
     # the grid in linedraw is too thin at small sizes
     panel.grid.major=element_line(size=0.25),
     # axes labels are useless for PCA
-    axis.text=element_blank(),axis.ticks=element_blank()
+    axis.text=element_blank(), axis.ticks=element_blank()
   ) 
 }
 
 scales <- list(
-  scale_alpha("Representativity", limits=c(0,0.9), range=c(0.3,1)),
+  scale_alpha("Representativity", limits=c(0,0.9), range=c(0.6,1)),
   scale_size ("Representativity", limits=c(0,0.9), range=c(3,6.5))
 )
 
-pv12 <- ggplot(pca_v12, aes(alpha=cos2)) +
+#pv12 <- ggplot(pca_v12, aes(alpha=cos2)) +
+pv12 <- ggplot(pca_v12) +
   geom_segment(aes(x=0, y=0, xend=Dim.1, yend=Dim.2), arrow=arrow(angle=15, length=unit(0.02, "npc")), show.legend=FALSE) +
   # geom_text(aes(x=Dim.1, y=Dim.2, label=label), hjust=0.5, vjust=0.5, size=3) +
   geom_text_repel(aes(x=Dim.1, y=Dim.2, label=label, size=cos2), segment.alpha=0.2, min.segment.length=unit(0.02, "npc")) +
@@ -667,7 +668,8 @@ pv12 <- ggplot(pca_v12, aes(alpha=cos2)) +
   scale_y_continuous(breaks=0, expand=c(0.05, 0.2)) +
   coord_pca_12
 
-pi12 <- ggplot(pca_i12, aes(Dim.1, Dim.2, alpha=cos2, colour=colour)) +
+#pi12 <- ggplot(pca_i12, aes(Dim.1, Dim.2, alpha=cos2, colour=colour)) +
+pi12 <- ggplot(pca_i12, aes(Dim.1, Dim.2, colour=colour)) +
   geom_point(shape=16, show.legend=FALSE, size=2.5) + geom_text_repel(aes(label=label, size=cos2)) +
   scale_colour_identity() +
   scales +
