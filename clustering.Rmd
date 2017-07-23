@@ -241,7 +241,7 @@ alluvial(
 )
 ```
 
-### Custom line plot
+### Custom line plot (butterfly)
 
 ```{r butterfly, fig.height=7, fig.width=10}
 # compute effectiveness to reduce CC
@@ -266,7 +266,7 @@ d_feas <- dst %>%
   filter(Criteria %in% c("Technological readiness", "Lead time until full pot. effectiv.")) %>% 
   # average scores
   group_by(Solutions) %>%
-  summarise(feas=mean(Score, na.rm=T))
+  summarise(feas=round(mean(Score, na.rm=T), digits = 0)) # rounded to nearest integer
 
 
 # Plot:
