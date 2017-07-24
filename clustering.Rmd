@@ -244,7 +244,7 @@ alluvial(
 ### Custom line plot (butterfly)
 
 ```{r butterfly, fig.height=7, fig.width=10}
-# compute effectiveness to reduce CC
+# compute effectiveness to reduce impacts of warming, ocean acidification, sea-level rise and of other drivers
 d_effect <- t3 %>%
   gather(key="Solutions", value="Score", -Category, -Criteria) %>%
   # remove cobenefits and lack of unintended => focus on effectiveness to reduce CC effects
@@ -260,7 +260,7 @@ d_effect$Cat_type <- ifelse(d_effect$Category %in% c("Arctic biota", "Coral reef
 # separate solutions based on their scope
 d_effect$Sol_type <- ifelse(d_effect$Solutions %in% c("Albedo", "Alkalinization (g)", "Cloud", "Hybrids", "Fertilization", "Renewables", "Vegetation (g)"), "global", "local")
 
-# compute global feasability per solution
+# compute technical feasability per solution
 d_feas <- dst %>% 
   # focus on feasability
   filter(Criteria %in% c("Technological readiness", "Lead time until full pot. effectiv.")) %>% 
