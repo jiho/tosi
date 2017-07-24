@@ -331,6 +331,7 @@ ggplot() + coord_fixed() + scale_x_continuous(expand=c(0,15)) + theme_void() +
   scale_size_area("Overall\nfeasability", max_size=10, limits=c(1,5)) +
   MyTheme
 ggsave("fig_butterfly_1.pdf", width=17.5/1.5*2, height=8*2, unit="cm")
+ggsave("fig_butterfly_1.eps", width=17.5/1.5*2, height=8*2, unit="cm")
 
 # ecosystem services
 ggplot() + coord_fixed() + scale_x_continuous(expand=c(0,15)) + theme_void() +
@@ -346,6 +347,7 @@ ggplot() + coord_fixed() + scale_x_continuous(expand=c(0,15)) + theme_void() +
   scale_size_area("Overall\nfeasability", max_size=10, limits=c(1,5)) +
   MyTheme
 ggsave("fig_butterfly_2.pdf", width=17.5/1.5*2, height=8*2, unit="cm")
+ggsave("fig_butterfly_2.eps", width=17.5/1.5*2, height=8*2, unit="cm")
 ```
 
 
