@@ -468,7 +468,7 @@ names(d) <- str_wrap(names(d), 18)
 pca <- suppressWarnings(PCA(d, graph=F, scale=F))
 
 # inspect eigenvalue
-qplot(1:nrow(pca$eig), pca$eig$eigenvalue) + geom_hline(yintercept=mean(pca$eig$eigenvalue), colour="red")
+qplot(1:nrow(pca$eig), pca$eig[,"eigenvalue"]) + geom_hline(yintercept=mean(pca$eig[,"eigenvalue"]), colour="red")
 ```
 
 Hierarchical clustering (Euclidean distance, Ward aggregation method) is performed on the coordinates of the solutions on those first 4 PCs. As before, 3 groups seem to emerge and are mostly equivalent to those highlighted on the raw data (which is expected of course, since the PCA just summarises the data and removes noise...).
@@ -536,7 +536,7 @@ pca_i12 <- left_join(pca_i12, groups, by = "label")
 # extract variables from PCA
 pca_v12 <- augment(pca, which="var")
 
-pvar <- round(pca$eig$`percentage of variance`[1:2], 1)
+pvar <- round(pca$eig[1:2,"percentage of variance"], 1)
 coord_pca_12 <- list(
   coord_fixed(),
   labs(x=paste0("PC1 (", pvar[1], "%)"), y=paste0("PC2 (", pvar[2], "%)"))
@@ -601,7 +601,7 @@ pca_i23 <- left_join(pca_i23, groups, by = "label")
 # extract variables from PCA
 pca_v23 <- augment(pca, which="var", dimensions=c(2,3))
 
-pvar <- round(pca$eig$`percentage of variance`[2:3], 1)
+pvar <- round(pca$eig[2:3,"percentage of variance"], 1)
 coord_pca_23 <- list(
   coord_fixed(),
   labs(x=paste0("PC2 (", pvar[1], "%)"), y=paste0("PC3 (", pvar[2], "%)"))
