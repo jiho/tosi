@@ -1,11 +1,13 @@
 ---
-author: J-P Gattuso, J-O Irisson
+title: Clustering of CC mitigation solutions
 output: 
-  html_document: 
-    css: document.css
+  html_document:
+    theme: paper
+    toc: yes
+    toc_float:
+      collapsed: no
+      smooth_scroll: yes
 ---
-
-# Clustering of CC mitigation solutions
 
 *J-P Gattuso, J-O Irisson  
 `r Sys.Date()`*
