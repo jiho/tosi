@@ -382,6 +382,46 @@ dd$Criteria <- factor(dd$Criteria, levels=c(unique(dsst$Criteria), levels(dst$Cr
 ggplot(dd) + geom_raster(aes(x=Criteria, y=Solutions, fill=Score)) + scale_fill_gradientn(colours=viridis_colors(6)) + coord_fixed() + theme(axis.text.x=element_text(angle=45, hjust=1)) + scale_x_discrete(expand=c(0,0)) + scale_y_discrete(expand=c(0,0)) + facet_grid(.~category, scales="free_x", shrink=F, space="free_x")
 ```
 
+### Radar plots
+
+```{r radar_per_solution}
+# remove coord munching to get straight lines in polar coordinates
+# see https://stackoverflow.com/questions/9483033/increase-polygonal-resolution-of-ggplot-polar-plots
+# save the original version of coord_munch
+coord_munch_old <- ggplot2:::coord_munch
+# make a wrapper function that has a different default for segment_length
+coord_munch_new <- function(coord, data, range, segment_length=1000) { coord_munch_old(coord, data, range, segment_length)}
+# and make run in the same environment
+environment(coord_munch_new) <- environment(ggplot2:::coord_munch)
+# replace ggplot2:::coord_munch with the new one
+assignInNamespace("coord_munch", coord_munch_new, ns="ggplot2")
+
+# now plot radar plots
+
+# Solutions per Criteria
+ggplot(filter(dst, Criteria != "Cost effectiveness")) +
+  geom_polygon(aes(x=Solutions, y=Score, group=1), fill=alpha("black", 0.5), colour="black") +
+  coord_polar() +
+  scale_y_continuous(limits=c(0,6), breaks=1:5, minor_breaks=NULL) +
+  scale_x_discrete(labels=str_replace(levels(dst$Solutions), ", ", ",\n")) +
+  theme() +
+  facet_wrap(~Criteria)
+ggsave("fig-radar_per_criterion.pdf")
+
+# Criteria per Solutions
+ggplot(filter(dst, Criteria != "Cost effectiveness")) +
+  geom_polygon(aes(x=Criteria, y=Score, group=1), fill=alpha("black", 0.5), colour="black") +
+  coord_polar() +
+  scale_y_continuous(limits=c(0,6), breaks=1:5, minor_breaks=NULL) +
+  scale_x_discrete(labels=str_wrap(levels(dst$Criteria), 13)) +
+  theme() +
+  facet_wrap(~Solutions, ncol=5)
+ggsave("fig-radar_per_solution.pdf")
+
+# re-define coord_munch as its default
+assignInNamespace("coord_munch", coord_munch_old, ns="ggplot2")
+```
+
 
 ## Clustering
 
