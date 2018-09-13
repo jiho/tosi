@@ -738,6 +738,7 @@ p <- grid.arrange(
 # NB: font size was 16pt => 8pt at final size
 ggsave(p, filename="fig_pca.pdf", width=4.75*2, height=11, units="in")
 ggsave(p, filename="fig_pca.png", width=4.75*2, height=11, units="in")
+ggsave(p, filename="fig_pca.tiff", width=185, units="mm")
 ```
 
 *Fig. XX. Principal Components Analysis of the attributes of ocean-based solutions.  
